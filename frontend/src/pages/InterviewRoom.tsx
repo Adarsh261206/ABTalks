@@ -9,7 +9,7 @@ import { Progress } from "../components/ui/Progress";
 import { TypingDots } from "../components/ui/TypingDots";
 import { api, loadLocalSession, newSessionId, saveLocalSession } from "../lib/api";
 import { analyzeTranscript, CORE_DAYS } from "../lib/interview";
-import type { CandidateProfile, TranscriptEntry } from "../lib/types";
+import { ApiError, type CandidateProfile, type TranscriptEntry } from "../lib/types";
 
 function loadPendingCandidate(): CandidateProfile | null {
   try {
@@ -39,7 +39,10 @@ export function InterviewRoom() {
   const [error, setError] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [done, setDone] = useState(false);
+  const [confirmingEnd, setConfirmingEnd] = useState(false);
+  const confirmTimerRef = useRef<number | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
   const autoStartedRef = useRef(false);
 
   const analysis = useMemo(() => analyzeTranscript(transcript), [transcript]);
@@ -83,7 +86,6 @@ export function InterviewRoom() {
       cancelled = true;
     };
   }, [navigate]);
-
   useEffect(() => {
     const node = timelineRef.current;
     if (node) node.scrollTo({ top: node.scrollHeight, behavior: "smooth" });
@@ -106,7 +108,7 @@ export function InterviewRoom() {
         });
         setTranscript([{ role: "interviewer", text: response.reply }]);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not start the interview.");
+        setError(formatError(err, "Could not start the interview."));
       } finally {
         setBusy(false);
       }
@@ -120,6 +122,41 @@ export function InterviewRoom() {
     autoStartedRef.current = true;
     void start(candidate);
   }, [candidate, sessionId, start]);
+
+  // "/" focuses the composer unless the user is already typing in a field
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const typing =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target?.isContentEditable;
+      if (event.key === "/" && !typing) {
+        event.preventDefault();
+        composerRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  // cancel a pending end-confirmation when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (confirmTimerRef.current !== null) window.clearTimeout(confirmTimerRef.current);
+    };
+  }, []);
+
+  const requestEnd = () => {
+    if (confirmingEnd) {
+      if (confirmTimerRef.current !== null) window.clearTimeout(confirmTimerRef.current);
+      setConfirmingEnd(false);
+      void send("/end");
+      return;
+    }
+    setConfirmingEnd(true);
+    confirmTimerRef.current = window.setTimeout(() => setConfirmingEnd(false), 3000);
+  };
 
   const send = useCallback(
     async (message: string) => {
@@ -139,7 +176,7 @@ export function InterviewRoom() {
           setTimeout(() => navigate("/report", { replace: true }), 900);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Could not reach the interviewer.");
+        setError(formatError(err, "Could not reach the interviewer."));
       } finally {
         setBusy(false);
       }
@@ -190,10 +227,10 @@ export function InterviewRoom() {
             variant="danger"
             size="sm"
             disabled={busy || done}
-            onClick={() => send("/end")}
+            onClick={requestEnd}
             title="End the interview early"
           >
-            End
+            {confirmingEnd ? "Confirm end?" : "End"}
           </Button>
         </div>
       </header>
@@ -202,6 +239,7 @@ export function InterviewRoom() {
         {/* timeline */}
         <section
           aria-label="Interview conversation"
+          aria-live="polite"
           ref={timelineRef}
           className="flex flex-col gap-4 overflow-y-auto pr-1"
         >
@@ -352,16 +390,29 @@ export function InterviewRoom() {
       <div className="border-t border-white/5 bg-ink-950/80 px-4 py-4 backdrop-blur sm:px-6">
         <div className="mx-auto max-w-6xl">
           {error && (
-            <div className="mb-2 rounded-lg border border-rose-400/25 bg-rose-400/10 px-3 py-2 text-xs text-rose-300 animate-fade-in">
+            <div
+              role="alert"
+              className="mb-2 rounded-lg border border-rose-400/25 bg-rose-400/10 px-3 py-2 text-xs text-rose-300 animate-fade-in"
+            >
               {error}
             </div>
           )}
+          <div className="mb-2 flex flex-wrap items-center gap-2 lg:hidden">
+            <Badge tone="neutral">
+              Question {questionIndex} / 8
+            </Badge>
+            <Badge tone="aurora">{analysis.phase}</Badge>
+            <Badge tone="mint">
+              {analysis.coreCovered.length}/8 core days
+            </Badge>
+          </div>
           <div className="flex items-end gap-2">
             <label className="sr-only" htmlFor="composer">
               Your answer
             </label>
             <textarea
               id="composer"
+              ref={composerRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -382,14 +433,13 @@ export function InterviewRoom() {
               disabled={busy || done || !sessionId || !input.trim()}
               onClick={() => void send(input)}
             >
-              Send
-              <span aria-hidden="true">↑</span>
+              {busy ? "…" : "Send"}
+              {!busy && <span aria-hidden="true">↑</span>}
             </Button>
           </div>
           <p className="mt-2 text-[11px] text-zinc-600">
-            Commands: <span className="text-zinc-500">/hint</span> ·{" "}
-            <span className="text-zinc-500">/end</span> · everything is grounded in your
-            curriculum record
+            Press <span className="text-zinc-500">/</span> to focus · Enter to send · commands:{" "}
+            <span className="text-zinc-500">/hint</span> · <span className="text-zinc-500">/end</span>
           </p>
         </div>
       </div>
@@ -399,4 +449,11 @@ export function InterviewRoom() {
 
 function nextQuestionDay(analysis: { coreCovered: number[] }): number {
   return CORE_DAYS.find((day) => !analysis.coreCovered.includes(day)) ?? CORE_DAYS[0];
+}
+
+function formatError(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    return err.hint ? `${err.message} ${err.hint}` : err.message;
+  }
+  return err instanceof Error ? err.message : fallback;
 }

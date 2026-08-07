@@ -105,9 +105,70 @@ body {
   background: transparent;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media print {
   body {
     background: #fff;
     color: #18181c;
+  }
+
+  /* Neutralize dark surfaces; keep accent chips but darken their text for contrast. */
+  .bg-ink-900,
+  .bg-ink-850,
+  .bg-ink-800,
+  .bg-white\/2,
+  .bg-white\/3,
+  .bg-white\/5,
+  .bg-white\/8,
+  .bg-ink-900\/40,
+  .bg-ink-900\/60,
+  .bg-ink-950\/70 {
+    background-color: #fff !important;
+  }
+  .border-white\/5,
+  .border-white\/6,
+  .border-white\/8,
+  .border-white\/10,
+  .border-white\/15,
+  .border-white\/20 {
+    border-color: #e3e3e6 !important;
+  }
+  .text-zinc-50,
+  .text-zinc-100,
+  .text-zinc-200,
+  .text-zinc-300,
+  .text-zinc-400,
+  .text-zinc-500,
+  .text-zinc-600,
+  .text-zinc-700 {
+    color: #1f1f23 !important;
+  }
+  .text-aurora-300,
+  .text-aurora-400,
+  .text-aurora-300\/70,
+  .text-aurora-300\/80,
+  .text-mint-300,
+  .text-amber-300,
+  .text-rose-400 {
+    color: #0a6fae !important;
+  }
+  .shadow-\[0_8px_24px_-8px_rgba\(14\,165\,233\,0\.55\)\] {
+    box-shadow: none !important;
+  }
+  .animate-fade-up,
+  .animate-fade-in {
+    animation: none !important;
   }
 }

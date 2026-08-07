@@ -51,8 +51,16 @@ export function Report() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-zinc-500">
-        Assembling the assessment…
+      <div
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+        className="flex min-h-screen flex-col items-center justify-center gap-4"
+      >
+        <span className="animate-pulse">
+          <Logo size={44} />
+        </span>
+        <p className="text-sm text-zinc-500">Assembling the assessment…</p>
       </div>
     );
   }
@@ -86,7 +94,7 @@ export function Report() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => window.print()}>
-            Export
+            Print
             <span aria-hidden="true">↓</span>
           </Button>
           <Button size="sm" onClick={() => navigate("/")}>
@@ -230,8 +238,8 @@ export function Report() {
           <p className="mt-1 text-xs text-zinc-500">
             Per-day question counts and grounded follow-ups, straight from the transcript metadata.
           </p>
-          <div className="mt-4 overflow-hidden rounded-2xl border border-white/8">
-            <table className="w-full text-left text-sm print:text-zinc-800">
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-white/8">
+            <table className="w-full min-w-[560px] text-left text-sm print:text-zinc-800">
               <thead className="bg-white/3 text-[11px] uppercase tracking-wide text-zinc-500">
                 <tr>
                   <th className="px-4 py-3 font-medium">Day</th>
@@ -242,29 +250,37 @@ export function Report() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {[...analysis.perDay.entries()]
-                  .sort((a, b) => a[0] - b[0])
-                  .map(([day, signal]) => (
-                    <tr key={day} className="bg-ink-900/40">
-                      <td className="px-4 py-3 font-medium text-aurora-300">{day}</td>
-                      <td className="px-4 py-3 text-zinc-400">{dayTitle(day)}</td>
-                      <td className="px-4 py-3 text-center text-zinc-300">{signal.questions}</td>
-                      <td className="px-4 py-3 text-center">
-                        {signal.probes > 0 ? (
-                          <Badge tone="aurora">{signal.probes}</Badge>
-                        ) : (
-                          <span className="text-zinc-700">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {signal.hints > 0 ? (
-                          <Badge tone="amber">{signal.hints}</Badge>
-                        ) : (
-                          <span className="text-zinc-700">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                {[...analysis.perDay.entries()].length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-zinc-500">
+                      No days were discussed in this session.
+                    </td>
+                  </tr>
+                ) : (
+                  [...analysis.perDay.entries()]
+                    .sort((a, b) => a[0] - b[0])
+                    .map(([day, signal]) => (
+                      <tr key={day} className="bg-ink-900/40">
+                        <td className="px-4 py-3 font-medium text-aurora-300">{day}</td>
+                        <td className="px-4 py-3 text-zinc-400">{dayTitle(day)}</td>
+                        <td className="px-4 py-3 text-center text-zinc-300">{signal.questions}</td>
+                        <td className="px-4 py-3 text-center">
+                          {signal.probes > 0 ? (
+                            <Badge tone="aurora">{signal.probes}</Badge>
+                          ) : (
+                            <span className="text-zinc-700">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {signal.hints > 0 ? (
+                            <Badge tone="amber">{signal.hints}</Badge>
+                          ) : (
+                            <span className="text-zinc-700">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                )}
               </tbody>
             </table>
           </div>

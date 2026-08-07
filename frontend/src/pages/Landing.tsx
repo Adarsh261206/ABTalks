@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -65,6 +66,7 @@ function CandidateCard({
 }
 
 export function Landing() {
+  const navigate = useNavigate();
   const [showAll, setShowAll] = useState(false);
   const demos = useMemo(
     () =>
@@ -76,7 +78,7 @@ export function Landing() {
 
   const pickCandidate = (candidate: CandidateProfile) => {
     sessionStorage.setItem("viva.pendingCandidate", JSON.stringify(candidate));
-    window.location.href = "/interview";
+    navigate("/interview");
   };
 
   return (

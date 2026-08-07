@@ -141,3 +141,19 @@ This log documents every prompt given to AI assistants (opencode + Breeth memory
 - Verified: frontend `tsc -b && vite build` clean (229 kB JS, 69.7 kB gzip), 9/9 vitest green, backend 89/89 green with static mount
 
 **Outcome:** Judges-facing demo flows end to end (pick persona → adaptive interview → printable assessment) with zero changes to the frozen backend. Commit pending push.
+
+---
+
+### 2026-08-07 ~23:00 IST — Milestone 6 (Demo Quality & Judge Experience)
+
+**Prompt:** Full M6 brief: "Milestones 1-5 COMPLETE and FROZEN… entirely about demo quality and judge experience" — loading/empty/error/success states, micro animations, keyboard shortcuts, responsive polish, accessibility, demo mode, copywriting, visual consistency, performance, mobile, print polish; no functionality changes, no bundle bloat; verify build/typecheck/tests/backend all green.
+
+**What the AI did (M6 — polish only, no functionality changes):**
+- **`Landing.tsx`** — fixed a real routing bug: `window.location.href = "/interview"` broke under HashRouter (path change only, app reloaded to Landing); now `useNavigate()`. Removes the full-page reload, instant transitions
+- **`InterviewRoom.tsx`** — `aria-live="polite"` on the timeline + `role="alert"` on the error banner; error banner now surfaces the backend `hint` from `ApiError` (rate-limit messaging); Send button shows "…" while busy; End button is now two-step ("Confirm end?" for 3s, auto-resets) to prevent accidental demo kills; `/` keyboard shortcut focuses the composer (ignored while typing); compact status chips row (Question x/8 · phase · core days) on mobile where the sidebar is hidden; composer footer now advertises the `/` shortcut
+- **`Report.tsx`** — loading state upgraded to pulsing logo + `role="status" aria-busy`; probe table gets `overflow-x-auto` + `min-w` (mobile horizontal scroll) and a proper empty-state row; "Export" relabeled "Print"
+- **`styles/index.css`** — `prefers-reduced-motion` block (kills all animations/transitions/smooth-scroll for motion-sensitive users); print stylesheet overhaul: all dark surfaces → white, gray text → near-black, accent text darkened for contrast, glow shadows removed, entrance animations disabled (the previous print output had light-gray text on white, nearly unreadable)
+- No new dependencies, no new components, no layout redesign; JS bundle +0.37 kB gzip
+- Verified: `npm run typecheck` exit 0, `npm run test` 9/9, `npm run build` clean (70.1 kB gzip), backend 89/89 green
+
+**Outcome:** Every screen now handles its in-between states, keyboard users and mobile judges get parity with desktop, print output is a clean white report, and the demo can't be accidentally ended. Commit `81c2e35` + pushed.
