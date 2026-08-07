@@ -70,3 +70,20 @@ This log documents every prompt given to AI assistants (opencode + Breeth memory
 **Outcome:** 24 original contract tests + 13 new layer tests = **37/37 green**; live smoke test confirms identical behavior (humanized questions, 8-question completion, 409-with-report). Committed & pushed.
 
 ---
+
+### 2026-08-07 ~22:30 IST — Milestone 2 (Interview core v1: profile analyzer + Director/Interviewer/Grader/Reporter agents)
+
+**Prompt:** "Milestone 1 is frozen. Begin Milestone 2 exactly as defined in the roadmap: single-agent loop that satisfies minimums (8 Qs, 4 days, welcome, wrap-up, feedback shape) — profile analyzer, Director (invariants in code), Interviewer voice prompt, simple grader (no RAG yet), Reporter v1, LLM gateway with retries + mock. Preserve all 37 tests; no architecture changes; commit + push."
+
+**What the AI did (M2 — Interview core v1):**
+- **`app/core/profile.py`** — deterministic profile analyzer: per-day mastery priors (0-1) from attempts/first-try rate/skips/failures/seniority (per PLANNING 17.8: skipped→0.2, failed→0.3, passed 0.7 minus attempt penalty), `probe_days` (failed/skipped/≥4-attempt), `profile_type` (strong/grinder/struggling/non_technical/average)
+- **`app/agents/director.py`** — Director: code-enforced invariants (≥8 Qs, ≥4 distinct days, no repeats till plan exhausted), profile-aware plan (warm-up Day 7 → probe days pulled forward → remaining core → extra days); wrap gating stays in engine
+- **`app/agents/interviewer.py`** — Interviewer: renders welcome/questions in VIVA voice (LLM mode, prompt per PLANNING 17.1) with M1 template fallback (question_template + humanize_objective)
+- **`app/agents/grader.py`** — Grader v1 (no RAG): rubric 0.5·accuracy + 0.3·depth + 0.2·clarity + honesty bonus (PLANNING 9.12), overclaim/vague flags vs mission record, evidence quotes; LLM structured output (17.3 schema) with deterministic heuristic fallback
+- **`app/agents/reporter.py`** — Reporter v1: spec feedback {summary, strengths, gaps, next} from grade averages + probe days + early-end handling; LLM (17.5) with deterministic fallback; empty LLM lists back-filled (edge case 93)
+- **`app/core/agent_engine.py`** — `AgenticInterviewEngine`: same start/process contract as M1 engine (async; service layer gained a 2-line `isawaitable` bridge so the M1 engine path is untouched); grades land in `state.belief[day]`; wrap at ≥8 questions / end-keywords / max_turns
+- **`app/main.py`** — default engine now the agentic one, wired to the existing LLM gateway (mock provider ⇒ deterministic offline mode via new `uses_mock_primary` flag on the gateway)
+- **`tests/test_agents.py`** — 30 new tests (profile math, director invariants, grader heuristics + LLM path + fallback, interviewer, reporter, full engine loops incl. LLM-scripted run and total provider outage)
+- Verified: 67/67 tests green (also under `--import-mode=importlib` and runtime-deps-only env); live curl run of Gerald (CAND-010) shows probe days (8/10/22) pulled forward and unprobed failed days (27/28) cited in feedback gaps/next
+
+**Outcome:** Full mock + real-LLM interview loop; 67/67 green; live smoke test passes. Committed & pushed.

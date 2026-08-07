@@ -38,6 +38,13 @@ class LLMGateway:
         self._base_backoff = base_backoff
         self._sleep = sleep
 
+    @property
+    def uses_mock_primary(self) -> bool:
+        """True when the primary provider is the deterministic mock (no keys/
+        network). Consumers (e.g. the agent engine) use this to skip LLM calls
+        entirely in offline mode — mock structured outputs cannot drive agents."""
+        return self._primary.name == "mock"
+
     async def chat(
         self,
         messages: list[dict],

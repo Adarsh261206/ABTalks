@@ -12,6 +12,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
+from app.core.agent_engine import AgenticInterviewEngine
 from app.core.engine import InterviewEngine
 from app.core.llm import LLMGateway
 from app.infrastructure.llm import LLMProvider
@@ -30,7 +31,7 @@ logger = logging.getLogger("viva")
 
 def create_app(
     store: SessionRepository | None = None,
-    engine: InterviewEngine | None = None,
+    engine: InterviewEngine | AgenticInterviewEngine | None = None,
     rate_limiter: RateLimiter | None = None,
     locks: SessionLockRegistry | None = None,
     llm_gateway: LLMGateway | None = None,
@@ -39,10 +40,10 @@ def create_app(
     session_store = store or SqliteSessionStore(
         db_path=settings.db_path, ttl_hours=settings.session_ttl_hours
     )
-    interview_engine = engine or InterviewEngine()
+    gateway = llm_gateway or _default_llm_gateway()
+    interview_engine = engine or AgenticInterviewEngine(gateway=gateway)
     limiter = rate_limiter or RateLimiter(limit=settings.rate_limit_per_minute)
     lock_registry = locks or SessionLockRegistry()
-    gateway = llm_gateway or _default_llm_gateway()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

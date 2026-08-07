@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import inspect
 import re
 import time
 from typing import Protocol
 
+from app.core.agent_engine import AgenticInterviewEngine
 from app.core.engine import InterviewEngine
 from app.core.prompts import RESUME_REPLY
 from app.domain.candidate import CandidateProfile
@@ -12,6 +14,11 @@ from app.state.repository import SessionRepository
 from app.state.serialization import from_stored, to_stored
 
 _CTRL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+
+
+async def _maybe_await(value):
+    """Engines may expose async (M2 agentic) or sync (M1) lifecycle methods."""
+    return await value if inspect.isawaitable(value) else value
 
 
 class SessionNotFoundError(Exception):
@@ -40,7 +47,7 @@ class InterviewService:
     def __init__(
         self,
         store: SessionRepository,
-        engine: InterviewEngine,
+        engine: InterviewEngine | AgenticInterviewEngine,
         clock=time.time,
     ) -> None:
         self._store = store
@@ -58,7 +65,7 @@ class InterviewService:
             return EngineTurn(reply=RESUME_REPLY)
 
         state = InterviewState(session_id=session_id)
-        reply = self._engine.start(state, candidate)
+        reply = await _maybe_await(self._engine.start(state, candidate))
         await self._store.create(to_stored(session_id, state, self._clock()))
         return EngineTurn(reply=reply)
 
@@ -74,6 +81,6 @@ class InterviewService:
             raise SessionCompletedError(state.report)
 
         message = _CTRL_CHARS.sub(" ", message).strip()
-        turn = self._engine.process(state, message)
+        turn = await _maybe_await(self._engine.process(state, message))
         await self._store.save(to_stored(session_id, state, row.created_at))
         return turn
