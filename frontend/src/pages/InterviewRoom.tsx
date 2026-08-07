@@ -76,7 +76,7 @@ export function InterviewRoom() {
         if (view.status === "completed") {
           setDone(true);
           saveLocalSession({ ...existing, done: true });
-          navigate("/report", { replace: true });
+          navigate(`/report/${view.session_id}`, { replace: true });
         }
       })
       .catch(() => {
@@ -176,7 +176,7 @@ export function InterviewRoom() {
           setDone(true);
           const existing = loadLocalSession();
           if (existing) saveLocalSession({ ...existing, done: true });
-          setTimeout(() => navigate("/report", { replace: true }), 900);
+          setTimeout(() => navigate(`/report/${sessionId}`, { replace: true }), 900);
         }
       } catch (err) {
         setError(formatError(err, "Could not reach the interviewer."));

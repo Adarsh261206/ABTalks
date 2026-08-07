@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Logo } from "../components/ui/Logo";
 import { Progress } from "../components/ui/Progress";
 import { api, loadLocalSession } from "../lib/api";
-import { curriculumModules, dayTitle } from "../lib/data";
+import { candidateById, curriculumModules, dayTitle } from "../lib/data";
 import {
   analyzeTranscript,
   CORE_DAYS,
@@ -17,19 +17,24 @@ import type { SessionView } from "../lib/types";
 
 export function Report() {
   const navigate = useNavigate();
+  const { sessionId: routeSessionId } = useParams();
+  const local = useMemo(() => loadLocalSession(), []);
+  const sessionId = routeSessionId ?? local?.sessionId ?? "";
   const [session, setSession] = useState<SessionView | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const existing = loadLocalSession();
-    if (!existing) {
+    if (!sessionId) {
       navigate("/", { replace: true });
       return;
     }
     let cancelled = false;
+    setLoading(true);
+    setError(null);
     api
-      .getSession(existing.sessionId)
+      .getSession(sessionId)
       .then((view) => {
         if (!cancelled) setSession(view);
       })
@@ -42,7 +47,7 @@ export function Report() {
     return () => {
       cancelled = true;
     };
-  }, [navigate]);
+  }, [sessionId, navigate]);
 
   const analysis = useMemo(
     () => (session ? analyzeTranscript(session.transcript) : null),
@@ -93,6 +98,17 @@ export function Report() {
           <span className="text-sm font-semibold tracking-[0.2em] text-zinc-200">VIVA</span>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              void navigator.clipboard.writeText(window.location.href);
+              setCopied(true);
+              window.setTimeout(() => setCopied(false), 2000);
+            }}
+          >
+            {copied ? "Copied" : "Copy link"}
+          </Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             Print
             <span aria-hidden="true">↓</span>
@@ -320,7 +336,16 @@ export function Report() {
 }
 
 function candidateName(session: SessionView): string {
-  return loadLocalSession()?.candidateName || session.session_id;
+  const local = loadLocalSession();
+  if (local && local.sessionId === session.session_id) return local.candidateName;
+  const id = candidateIdFromSession(session.session_id);
+  return id && candidateById(id)?.member.name ? candidateById(id)!.member.name : session.session_id;
+}
+
+function candidateIdFromSession(sessionId: string): string | null {
+  const parts = sessionId.split("-");
+  if (parts[0] !== "viva" || parts.length < 3) return null;
+  return parts.slice(1, -1).join("-");
 }
 
 function DayHighlights({ text }: { text: string }) {

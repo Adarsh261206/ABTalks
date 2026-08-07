@@ -10,6 +10,7 @@ export function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/interview" element={<InterviewRoom />} />
         <Route path="/report" element={<Report />} />
+        <Route path="/report/:sessionId" element={<Report />} />
         <Route path="*" element={<Landing />} />
       </Routes>
     </HashRouter>
