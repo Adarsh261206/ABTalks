@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 
 from app.core.curriculum import DayInfo
 from app.core.llm import LLMGateway, LLMGatewayError
-from app.core.prompts import REPORTER_SYSTEM
+from app.core.prompts import REPORTER_EVIDENCE, REPORTER_SYSTEM
 from app.core.profile import ProfileAnalysis
 from app.domain.interview import Feedback, InterviewState
 
@@ -89,6 +89,12 @@ class Reporter:
             f"{t.role}: {t.text[:400]}" for t in state.transcript[-20:]
         )
         grades = _grade_summary(state)
+        evidence_lines = _evidence_lines(state)
+        evidence = (
+            REPORTER_EVIDENCE.format(lines=evidence_lines or "no grounded evidence recorded")
+            if evidence_lines
+            else "No per-day grounded evidence recorded for this run."
+        )
         return (
             f"Interview transcript (last turns):\n{transcript or 'empty'}\n\n"
             f"Per-day grade averages (0-5 weighted): {grades or 'none'}\n\n"
@@ -96,7 +102,8 @@ class Reporter:
             f"{_priors_summary(analysis)}\n"
             f"Days flagged in the record for review: "
             f"{analysis.probe_days or 'none'}\n\n"
-            f"Covered days: {state.covered_days}. Questions asked: {len(state.asked)}."
+            f"Covered days: {state.covered_days}. Questions asked: {len(state.asked)}.\n\n"
+            f"{evidence}"
         )
 
     # -- deterministic fallback ---------------------------------------------
@@ -115,7 +122,9 @@ class Reporter:
         strengths: list[str] = []
         for day, avg in sorted(avgs.items(), key=lambda kv: kv[1], reverse=True):
             if avg >= _STRENGTH_THRESHOLD:
-                strengths.append(f"Strong command of Day {day} — {_title(day, curriculum)}.")
+                strengths.append(
+                    f"Strong command of Day {day} — {_strength_text(day, state, curriculum)}."
+                )
             if len(strengths) >= 3:
                 break
         if not strengths:
@@ -125,7 +134,7 @@ class Reporter:
         for day, avg in sorted(avgs.items(), key=lambda kv: kv[1]):
             if avg < _GAP_THRESHOLD:
                 gaps.append(
-                    f"Day {day} — {_title(day, curriculum)}: answers lacked depth and precision."
+                    f"Day {day} — {_gap_text(day, state, curriculum)}"
                 )
             if len(gaps) >= 3:
                 break
@@ -151,10 +160,19 @@ class Reporter:
         next_steps: list[str] = []
         for day, avg in sorted(avgs.items(), key=lambda kv: kv[1]):
             if avg < _GAP_THRESHOLD:
-                next_steps.append(
-                    f"Revisit Day {day} — {_title(day, curriculum)}: walk through your "
-                    "implementation step by step and explain the trade-offs you made."
-                )
+                evidence = _evidence_for(state, day)
+                if evidence and evidence.get("missing"):
+                    missing = ", ".join(evidence["missing"][:3])
+                    objective = evidence.get("objective", "")
+                    next_steps.append(
+                        f"Revisit Day {day} — {_title(day, curriculum)}: "
+                        f"{objective} — cover {missing}."
+                    )
+                else:
+                    next_steps.append(
+                        f"Revisit Day {day} — {_title(day, curriculum)}: walk through your "
+                        "implementation step by step and explain the trade-offs you made."
+                    )
             if len(next_steps) >= 2:
                 break
         for day in analysis.probe_days:
@@ -194,6 +212,48 @@ def _grade_summary(state: InterviewState) -> dict[int, float]:
         for day, scores in state.belief.items()
         if scores
     }
+
+
+def _evidence_lines(state: InterviewState) -> list[str]:
+    lines = []
+    for day_key in sorted(state.meta.get("day_evidence", {}), key=int):
+        evidence = state.meta["day_evidence"][day_key]
+        detected = ", ".join(evidence.get("detected", [])[:4]) or "none"
+        missing = ", ".join(evidence.get("missing", [])[:4]) or "none"
+        lines.append(
+            f"Day {day_key}: objective: {evidence.get('objective', '')}; "
+            f"covered: {detected}; missing: {missing}; "
+            f"retrieval confidence: {evidence.get('retrieval_confidence', 0.0)}; "
+            f"average weighted score: {evidence.get('score', 0.0)}"
+        )
+    return lines
+
+
+def _evidence_for(state: InterviewState, day: int) -> dict | None:
+    return state.meta.get("day_evidence", {}).get(str(day))
+
+
+def _gap_text(day: int, state: InterviewState, curriculum: dict[int, DayInfo]) -> str:
+    evidence = _evidence_for(state, day)
+    if evidence and evidence.get("missing"):
+        missing = ", ".join(evidence["missing"][:3])
+        objective = evidence.get("objective", "")
+        return (
+            f"{_title(day, curriculum)}: expected {objective}; you covered "
+            f"{', '.join(evidence.get('detected', [])[:3]) or 'none'}; "
+            f"missing {missing}."
+        )
+    return f"{_title(day, curriculum)}: answers lacked depth and precision."
+
+
+def _strength_text(day: int, state: InterviewState, curriculum: dict[int, DayInfo]) -> str:
+    evidence = _evidence_for(state, day)
+    if evidence and evidence.get("detected"):
+        return (
+            f"covered {', '.join(evidence['detected'][:3])} against the day's "
+            "retrieved objectives"
+        )
+    return _title(day, curriculum)
 
 
 def _priors_summary(analysis: ProfileAnalysis) -> str:

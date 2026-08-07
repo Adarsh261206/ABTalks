@@ -111,7 +111,24 @@ class AgenticInterviewEngine:
         )
         state.belief.setdefault(str(question.day), []).append(grade.weighted_score)
         prior = prior_for_day(state.candidate, question.day)
+        before = state.belief_state.get(str(question.day), {}).get("mastery", prior)
         update_belief(state.belief_state, question.day, grade.weighted_score, prior)
+        after = state.belief_state[str(question.day)]["mastery"]
+        bundle = grade.evidence
+        if bundle is not None:
+            bundle.mastery_delta = round(after - before, 4)
+            reasoning = state.meta.setdefault("reasoning", [])
+            reasoning.append(bundle.model_dump())
+            if len(reasoning) > 12:
+                del reasoning[: len(reasoning) - 12]
+            state.meta.setdefault("day_evidence", {})[str(question.day)] = {
+                "module": bundle.module,
+                "objective": bundle.learning_objective,
+                "detected": bundle.concepts_detected,
+                "missing": bundle.concepts_missing,
+                "retrieval_confidence": bundle.retrieval_confidence,
+                "score": round(grade.weighted_score, 2),
+            }
         meta = state.meta
         recent = list(meta.get("recent_scores", []))
         recent.append(grade.weighted_score)
@@ -125,6 +142,8 @@ class AgenticInterviewEngine:
             "weighted": grade.weighted_score,
             "overclaim": grade.overclaim,
             "vague": grade.vague,
+            "retrieval_confidence": bundle.retrieval_confidence if bundle else 0.0,
+            "grading_confidence": bundle.grading_confidence if bundle else 0.0,
         }
         return grade
 
@@ -174,12 +193,22 @@ class AgenticInterviewEngine:
             "kind": target.kind,
             "target": target.target,
         }
+        if "last_grade" in meta:
+            meta["last_grade"]["followup_reason"] = target.followup_reason
+        reasoning = state.meta.get("reasoning")
+        if reasoning and reasoning[-1].get("curriculum_day") == question.day:
+            reasoning[-1]["followup_reason"] = target.followup_reason
         state.transcript.append(
             TranscriptEntry(
                 role="interviewer",
                 text=reply,
                 day=question.day,
-                meta={"kind": target.kind, "action": "follow_up"},
+                meta={
+                    "kind": target.kind,
+                    "action": "follow_up",
+                    "followup_reason": target.followup_reason,
+                    "missing_concepts": target.missing_concepts,
+                },
             )
         )
         return EngineTurn(reply=reply)

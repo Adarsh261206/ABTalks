@@ -110,6 +110,11 @@ class Interviewer:
                                 kind=target.kind,
                                 target=target.target,
                                 ref_day=target.ref_day,
+                                objective=target.objective or "unavailable",
+                                detected=", ".join(target.detected_concepts) or "none",
+                                missing=", ".join(target.missing_concepts) or "none",
+                                followup_reason=target.followup_reason
+                                or "no explicit reason",
                             ),
                         },
                     ],
@@ -174,6 +179,14 @@ class Interviewer:
                 f"Hold on — you said \"{target.ref_quote}\". Let's slow down on "
                 f"{day_label}. Your mission record shows this wasn't completed — "
                 "walk me through the parts you actually built and where you got stuck."
+            )
+        if target.kind == "probe" and target.missing_concepts:
+            missing = ", ".join(target.missing_concepts[:2])
+            return (
+                f"Good start on {day_label} — you covered "
+                f"{', '.join(target.detected_concepts[:2]) or 'the basics'}. "
+                f"The objective expects {missing} too — walk me through your "
+                f"understanding of that part."
             )
         if target.kind == "clarify":
             return (

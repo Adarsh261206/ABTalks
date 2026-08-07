@@ -133,7 +133,22 @@ Output JSON (validated):
 }
 Rules: accuracy 0-2 if the answer contradicts the objectives; never give full marks for memorized definitions without reasoning; be honest — this is a practice tool, flattery destroys its value. Scores must be numbers between 0 and 5."""
 
-REPORTER_SYSTEM = """You are the report writer for a practice technical interview. Given the interview transcript, the per-day grade summaries, and the candidate's profile signals, produce the final feedback.
+GRADER_EVIDENCE = (
+    "Retrieved curriculum evidence (deterministic retrieval):\n"
+    "Day: {day} | Module: {module} | Title: {title}\n"
+    "Learning objective in focus: {objective}\n"
+    "Retrieved chunks: {chunks}\n"
+    "Concepts expected: {expected}\n"
+    "Concepts the candidate covered: {detected}\n"
+    "Concepts missing: {missing}\n"
+    "Retrieval confidence: {confidence:.2f}. {note}\n"
+    "Ground your scores in this evidence: reduce accuracy when expected "
+    "concepts are missing (list them under mistakes); award full accuracy "
+    "only when the candidate addresses the retrieved objective. If the "
+    "retrieval confidence is low, grade conservatively and say so."
+)
+
+REPORTER_SYSTEM = """You are the report writer for a practice technical interview. Given the interview transcript, the per-day grade summaries, the per-day curriculum evidence, and the candidate's profile signals, produce the final feedback.
 
 Output JSON (validated):
 {
@@ -143,6 +158,14 @@ Output JSON (validated):
   "next": ["3-5 ordered, actionable next steps; cite day numbers"]
 }
 Rule: every claim in strengths and gaps must be backed by something the candidate actually said or a day citation. No generic advice. The summary must start with "Practice interview completed". Return the fields as arrays of strings."""
+
+REPORTER_EVIDENCE = (
+    "Per-day grounded evidence (retrieved curriculum, deterministic):\n"
+    "{lines}\n"
+    "Ground every strength and gap in this evidence: name the objective and "
+    "the concepts the candidate covered or missed. Never write generic praise "
+    "or criticism."
+)
 
 INTERVIEWER_WELCOME_USER = (
     "Candidate profile:\n{profile}\n\nOpen the interview warmly in one or two "
@@ -161,8 +184,14 @@ FOLLOWUP_USER = (
     "The candidate's previous answer:\n{answer}\n\n"
     "Follow-up spec from the prober: kind={kind}, target={target}, "
     "day={ref_day}.\n"
+    "Follow-up is grounded in retrieved curriculum evidence:\n"
+    "- Retrieved objective: {objective}\n"
+    "- Concepts the candidate covered: {detected}\n"
+    "- Concepts missing: {missing}\n"
+    "- Follow-up reason: {followup_reason}\n"
     "Ask exactly one conversational follow-up that builds on the candidate's own "
-    "words (quote or reference their answer). Probe the target directly. "
+    "words (quote or reference their answer). Probe the missing concept or "
+    "objective directly — never ask a generic or random question. "
     "One question only, warm professional tone."
 )
 

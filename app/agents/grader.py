@@ -16,8 +16,9 @@ import re
 from pydantic import BaseModel, Field
 
 from app.core.curriculum import DayInfo
+from app.core.grounding import EvidenceBundle, Grounding, ground_answer
 from app.core.llm import LLMGateway, LLMGatewayError
-from app.core.prompts import GRADER_SYSTEM
+from app.core.prompts import GRADER_EVIDENCE, GRADER_SYSTEM
 from app.domain.candidate import CandidateProfile
 from app.domain.interview import Question
 
@@ -56,7 +57,8 @@ _CLAIM_VERBS = re.compile(
 
 
 class GradeResult(BaseModel):
-    """Validated grader output (PLANNING.md 17.3 schema)."""
+    """Validated grader output (PLANNING.md 17.3 schema), plus the M4
+    evidence bundle that grounds the score."""
 
     day: int
     accuracy: float = Field(ge=0, le=5)
@@ -69,6 +71,7 @@ class GradeResult(BaseModel):
     overclaim_evidence: str | None = None
     vague: bool = False
     vague_evidence: str | None = None
+    evidence: EvidenceBundle | None = None
 
     @property
     def weighted_score(self) -> float:
@@ -82,12 +85,17 @@ class GradeResult(BaseModel):
 
 
 class ProbeTarget(BaseModel):
-    """Follow-up spec (PLANNING.md 17.4): what to probe and how."""
+    """Follow-up spec (PLANNING.md 17.4): what to probe, how, and why —
+    grounded in the retrieved objective when available."""
 
-    kind: str = "clarify"  # clarify | challenge | deepen | verify
+    kind: str = "clarify"  # clarify | challenge | deepen | verify | probe
     target: str
     ref_day: int | None = None
     ref_quote: str = ""
+    objective: str = ""
+    detected_concepts: list[str] = Field(default_factory=list)
+    missing_concepts: list[str] = Field(default_factory=list)
+    followup_reason: str = ""
 
 
 class _GraderOutput(BaseModel):
@@ -117,6 +125,7 @@ class Grader:
         day: DayInfo | None,
         candidate: CandidateProfile,
     ) -> GradeResult:
+        grounding = ground_answer(question.day, day, answer)
         if self._use_llm:
             try:
                 output = await self._gateway.structured(
@@ -124,17 +133,19 @@ class Grader:
                         {"role": "system", "content": GRADER_SYSTEM},
                         {
                             "role": "user",
-                            "content": self._prompt(question, answer, day, candidate),
+                            "content": self._prompt(question, answer, day, candidate, grounding),
                         },
                     ],
                     schema=_GraderOutput,
                     temperature=0.0,
                 )
                 assert isinstance(output, _GraderOutput)
-                return self._to_result(question.day, output)
+                result = self._to_result(question.day, output)
+                result.evidence = self._bundle(question.day, answer, day, grounding, result)
+                return result
             except (LLMGatewayError, AssertionError) as exc:
                 logger.warning("grader fell back to heuristics: %s", exc)
-        return self._fallback(question.day, answer, day, candidate)
+        return self._fallback(question.day, answer, day, candidate, grounding)
 
     # -- LLM path ---------------------------------------------------------
 
@@ -144,6 +155,7 @@ class Grader:
         answer: str,
         day: DayInfo | None,
         candidate: CandidateProfile,
+        grounding: Grounding,
     ) -> str:
         objectives = "; ".join(day.objectives) if day else ""
         mission = next(
@@ -154,12 +166,30 @@ class Grader:
             if mission
             else "no mission record"
         )
+        evidence = (
+            GRADER_EVIDENCE.format(
+                day=grounding.curriculum_day or "?",
+                module=grounding.module or "unavailable",
+                title=grounding.title or "unavailable",
+                objective=grounding.learning_objective or "unavailable",
+                chunks=" | ".join(c.text for c in grounding.retrieved_chunks)
+                or "none retrieved",
+                expected=", ".join(grounding.concepts_expected) or "none",
+                detected=", ".join(grounding.concepts_detected) or "none",
+                missing=", ".join(grounding.concepts_missing) or "none",
+                confidence=grounding.retrieval_confidence,
+                note=grounding.note,
+            )
+            if grounding.curriculum_day is not None
+            else "No curriculum evidence could be retrieved for this question — grade "
+            "conservatively and state that the evaluation is ungrounded."
+        )
         return (
             f"Question: {question.text or f'Day {question.day}'}\n"
             f"Curriculum day: Day {question.day} — {day.title if day else ''}\n"
             f"Day objectives: {objectives or 'unavailable'}\n"
             f"Candidate mission record for Day {question.day}: {mission_text}\n"
-            f"Candidate answer:\n{answer}"
+            f"Candidate answer:\n{answer}\n\n{evidence}"
         )
 
     def _to_result(self, day: int, output: _GraderOutput) -> GradeResult:
@@ -185,6 +215,7 @@ class Grader:
         answer: str,
         day_info: DayInfo | None,
         candidate: CandidateProfile,
+        grounding: Grounding,
     ) -> GradeResult:
         answer_lower = answer.lower()
         length = len(answer)
@@ -203,11 +234,18 @@ class Grader:
 
         clarity = _clarity_score(answer)
 
-        accuracy = 3.0
-        if day_info and any(
-            tool and tool.lower() in answer_lower for tool in day_info.tools
-        ):
-            accuracy = min(4.0, accuracy + 0.5)
+        if grounding.concepts_expected:
+            recall = len(grounding.concepts_detected) / len(grounding.concepts_expected)
+            accuracy = _clamp_score(3.0 + 2.0 * (recall - 0.5))
+            if len(grounding.concepts_detected) >= 3:
+                depth = _clamp_score(depth + 0.5)
+        else:
+            recall = 0.0
+            accuracy = 3.0
+            if day_info and any(
+                tool and tool.lower() in answer_lower for tool in day_info.tools
+            ):
+                accuracy = min(4.0, accuracy + 0.5)
 
         honesty_bonus = 0.5 if any(p in answer_lower for p in _HONESTY_PHRASES) else 0.0
 
@@ -220,7 +258,7 @@ class Grader:
             overclaim = True
             overclaim_evidence = answer.strip()[:160]
 
-        return GradeResult(
+        result = GradeResult(
             day=day,
             accuracy=accuracy,
             depth=depth,
@@ -231,6 +269,43 @@ class Grader:
             vague=vague,
             vague_evidence=answer.strip()[:160] if vague else None,
         )
+        result.evidence = self._bundle(day, answer, day_info, grounding, result)
+        return result
+
+    # -- grounding ----------------------------------------------------------
+
+    def _bundle(
+        self,
+        day: int,
+        answer: str,
+        day_info: DayInfo | None,
+        grounding: Grounding,
+        result: GradeResult,
+    ) -> EvidenceBundle:
+        """Deterministic evidence for every score: expected objective,
+        retrieved chunks, concepts covered/missed, and why the score moved."""
+        bundle = EvidenceBundle(**grounding.model_dump())
+        missing = ", ".join(bundle.concepts_missing[:3]) or "none"
+        detected = ", ".join(bundle.concepts_detected) or "none"
+        if bundle.curriculum_day is None:
+            bundle.reason = (
+                f"No curriculum evidence available for Day {day} — score "
+                "comes from general heuristics (explicitly ungrounded)."
+            )
+        else:
+            score_why = (
+                "accuracy reflects the expected concepts the candidate "
+                "actually addressed"
+                if bundle.concepts_detected
+                else "no expected concepts detected; accuracy penalized"
+            )
+            bundle.reason = (
+                f"Day {day} — {bundle.title} ({bundle.module}). Expected: "
+                f"{bundle.learning_objective}. Candidate covered: {detected}; "
+                f"missed: {missing}. Retrieval confidence "
+                f"{bundle.retrieval_confidence:.2f} ({bundle.note}) — {score_why}."
+            )
+        return bundle
 
 
 def _clarity_score(answer: str) -> float:
@@ -254,13 +329,20 @@ def _clamp_score(value: float) -> float:
 
 
 def build_probe_target(grade: GradeResult, answer: str, day: int) -> ProbeTarget:
-    """Choose the single best follow-up target (PLANNING.md 17.4): mistakes
-    > overclaims > vagueness > shallow depth. Deterministic — the Interviewer
-    renders the target in the VIVA voice."""
+    """Choose the single best grounded follow-up target (PLANNING.md 17.4):
+    mistakes > overclaims > missing concepts (from the retrieved objective)
+    > vagueness > deepen. Deterministic — the Interviewer renders the target
+    in the VIVA voice."""
     quote = _snippet(answer)
+    bundle = grade.evidence
+    concepts = bundle.concepts_detected if bundle else []
+    missing = bundle.concepts_missing if bundle else []
+    objective = bundle.learning_objective if bundle else ""
     if grade.mistakes:
         return ProbeTarget(
-            kind="challenge", target=grade.mistakes[0], ref_day=day, ref_quote=quote
+            kind="challenge", target=grade.mistakes[0], ref_day=day, ref_quote=quote,
+            objective=objective, detected_concepts=concepts, missing_concepts=missing,
+            followup_reason=f"the answer contradicts the expected objective: {objective}",
         )
     if grade.overclaim and grade.overclaim_evidence:
         return ProbeTarget(
@@ -268,10 +350,26 @@ def build_probe_target(grade: GradeResult, answer: str, day: int) -> ProbeTarget
             target="work you claim on this day",
             ref_day=day,
             ref_quote=_snippet(grade.overclaim_evidence),
+            objective=objective, detected_concepts=concepts, missing_concepts=missing,
+            followup_reason="the candidate claims work the mission record for this day does not support",
+        )
+    if missing:
+        return ProbeTarget(
+            kind="probe",
+            target=missing[0],
+            ref_day=day,
+            ref_quote=quote,
+            objective=objective, detected_concepts=concepts, missing_concepts=missing,
+            followup_reason=(
+                f"the candidate missed concept '{missing[0]}' expected by the "
+                f"retrieved objective: {objective}"
+            ),
         )
     if grade.vague:
         return ProbeTarget(
-            kind="clarify", target="be more concrete", ref_day=day, ref_quote=quote
+            kind="clarify", target="be more concrete", ref_day=day, ref_quote=quote,
+            objective=objective, detected_concepts=concepts, missing_concepts=missing,
+            followup_reason="the answer was too vague to ground against the retrieved objective",
         )
     term = _extract_term(answer)
     return ProbeTarget(
@@ -279,6 +377,8 @@ def build_probe_target(grade: GradeResult, answer: str, day: int) -> ProbeTarget
         target=term or "your approach",
         ref_day=day,
         ref_quote=quote,
+        objective=objective, detected_concepts=concepts, missing_concepts=missing,
+        followup_reason=f"mastery demonstrated — deepening into '{term or 'the approach'}'",
     )
 
 
