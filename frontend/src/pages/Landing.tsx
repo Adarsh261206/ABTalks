@@ -4,6 +4,7 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Logo } from "../components/ui/Logo";
+import { clearLocalSession } from "../lib/api";
 import { allCandidates, DEMO_PROFILES, isDemoCandidate, moduleForDay } from "../lib/data";
 import type { CandidateProfile } from "../lib/types";
 
@@ -77,6 +78,7 @@ export function Landing() {
   );
 
   const pickCandidate = (candidate: CandidateProfile) => {
+    clearLocalSession();
     sessionStorage.setItem("viva.pendingCandidate", JSON.stringify(candidate));
     navigate("/interview");
   };

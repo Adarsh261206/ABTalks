@@ -47,8 +47,11 @@ export function InterviewRoom() {
 
   const analysis = useMemo(() => analyzeTranscript(transcript), [transcript]);
 
-  // resume an in-progress session on mount
+  // resume an in-progress session on mount — but never when a fresh candidate
+  // is pending: auto-start below owns that mount (avoids resuming a stale
+  // session from a previous demo run)
   useEffect(() => {
+    if (sessionStorage.getItem("viva.pendingCandidate")) return;
     const existing = loadLocalSession();
     if (!existing || existing.done) return;
     let cancelled = false;
