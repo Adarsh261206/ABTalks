@@ -87,3 +87,39 @@ This log documents every prompt given to AI assistants (opencode + Breeth memory
 - Verified: 67/67 tests green (also under `--import-mode=importlib` and runtime-deps-only env); live curl run of Gerald (CAND-010) shows probe days (8/10/22) pulled forward and unprobed failed days (27/28) cited in feedback gaps/next
 
 **Outcome:** Full mock + real-LLM interview loop; 67/67 green; live smoke test passes. Committed & pushed.
+
+---
+
+### 2026-08-07 ~22:00 IST — Milestone 3 (Multi-agent upgrade: belief state + follow-ups + hints)
+
+**Prompt:** "haa karde commit" (continuing the M3 execution thread — the milestone brief: belief state, adaptation, follow-ups, honesty; follow-up depth cap; hints when stuck; keep all M1/M2 contracts intact).
+
+**What the AI did (M3 — Multi-agent upgrade):**
+- **`app/core/belief.py`** — belief state: per-day mastery blend (0.7·prior + 0.3·live), confidence growth, difficulty tiers (L1/L2/L3) with seniority bias and recent-score escalation/de-escalation
+- **`app/agents/director.py`** — Director now belief-driven: `next_question` picks difficulty from the belief state; `decide()` picks the next action (ask_new / follow_up / hint) deterministically from grade signals (terse/overclaim/vague/mistakes/shallow); follow-up depth cap = 2; invariants (≥8 Qs, ≥4 days, no repeats) still enforced in code
+- **`app/agents/grader.py`** — `GradeResult` + `ProbeTarget` + `build_probe_target` (target priority: mistakes > overclaims > vagueness > deepen)
+- **`app/agents/interviewer.py`** — `render_followup` + `render_hint` (LLM first, template fallbacks in VIVA voice); new `FOLLOWUP_USER` / `HINT_USER` prompts
+- **`app/core/agent_engine.py`** — full M3 loop per turn: grade → belief update → Director decide → Interviewer render; reasoning stored in `state.meta` (recent scores, overclaims, last decision)
+- Fixed stale tests (M1-era `next_question(state)` call; outage test turn budget raised for follow-up depth); removed duplicate `_GraderOutput` class
+- Verified: 67/67 tests green
+
+**Outcome:** Adaptive, belief-driven interviews with grounded follow-ups and teaching-mode hints. Committed `171c9d3`.
+
+---
+
+### 2026-08-07 ~22:20 IST — Milestone 4 (Grounded Evaluation Engine: RAG + evidence)
+
+**Prompt:** Full M4 brief: "Milestones 1-3 COMPLETE and FROZEN… Your only objective is to make every evaluation, follow-up, and final feedback evidence-based." — deterministic lightweight RAG over curriculum.json, grounding rules (every weak score must explain expected objective / retrieved evidence / what was missed / why score decreased), RAG pipeline, reasoning metadata (curriculum_day, module, learning_objective, retrieved_chunks, retrieval_confidence, grading_confidence, concepts_expected/detected/missing, followup_reason, mastery_delta), evidence engine, follow-up engine (probe missing concepts, never random), no LangChain/LlamaIndex/CrewAI, comprehensive tests, zero regressions.
+
+**What the AI did (M4 — Grounded Evaluation Engine):**
+- **`app/core/retrieval.py`** — deterministic RAG layer: `CurriculumIndex` (lexical token index over days), day-exact retrieval returning the smallest useful evidence (individual objectives + tools as chunks), topic retrieval with ambiguity flag (top-2 within 10% → ambiguous), explicit 0-confidence + note for missing curriculum
+- **`app/core/grounding.py`** — `ground_answer()`: picks the objective an answer most addresses (token overlap), classifies expected concepts as detected/missing (tools + objective keywords, phrase-level matching), computes retrieval + grading confidence (answer-side coverage × concept recall); `Grounding` → `EvidenceBundle` (adds reason / followup_reason / mastery_delta)
+- **`app/agents/grader.py`** — every grade now carries an `EvidenceBundle`: fallback accuracy = 3.0 + 2·(recall − 0.5) (clamped), depth bonus when ≥3 concepts detected; deterministic `reason` for every score (expected / covered / missed / confidence / why score moved); LLM prompt gains `GRADER_EVIDENCE` block (scores must be grounded in retrieved objectives); `build_probe_target` now probes the specific missing concept from the retrieved objective with a `followup_reason` (mistakes > overclaims > missing concepts > vague > deepen)
+- **`app/agents/interviewer.py`** — grounded follow-up fallback ("Day N's objective also expects X — walk me through it"); `FOLLOWUP_USER` prompt carries retrieved objective + detected/missing concepts
+- **`app/agents/reporter.py`** — evidence-backed fallback (gaps cite expected objective + missing concepts; strengths cite covered concepts) + `REPORTER_EVIDENCE` block in the LLM prompt
+- **`app/core/curriculum.py`** — `DayInfo.module` added; module titles mapped from curriculum.json module ranges
+- **`app/core/agent_engine.py`** — stores per-answer reasoning metadata (`state.meta["reasoning"]`, capped 12), per-day evidence (`day_evidence`), `mastery_delta` from the belief update, `followup_reason` on follow-up turns
+- **`tests/test_grounding.py`** — 22 new tests: retrieval correctness/topic/ambiguity, concept classification, confidence high/low, missing curriculum explicit, LLM-path evidence in prompt, grounded accuracy penalty, follow-up grounding (probe/challenge/deepen priority), engine metadata (all 11 fields), transcript grounding meta, evidence-backed report, reporter LLM prompt
+- Verified: 89/89 tests green (67 prior, zero regressions); grounding latency 0.08 ms (pure arithmetic, no new network calls)
+
+**Outcome:** Every score, follow-up and report is now traceable to curriculum evidence; low retrieval confidence is stated explicitly, never hidden. Committed `dd7e214` + pushed.
