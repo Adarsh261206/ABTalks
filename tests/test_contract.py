@@ -5,7 +5,6 @@ from __future__ import annotations
 import time
 
 from app.services.ratelimit import RateLimiter
-from conftest import CANDIDATE, start_interview, turn
 
 CORE_DAYS = [7, 8, 10, 12, 16, 22, 23, 31]
 
@@ -17,7 +16,7 @@ def test_health(app_factory):
     assert r.json() == {"status": "ok"}
 
 
-def test_start_returns_welcome(app_factory):
+def test_start_returns_welcome(app_factory, start_interview):
     client, _ = app_factory()
     r = start_interview(client)
     assert r.status_code == 200
@@ -34,19 +33,19 @@ def test_start_missing_candidate_422(app_factory):
     assert r.json()["error"]
 
 
-def test_start_missing_session_id_400(app_factory):
+def test_start_missing_session_id_400(app_factory, candidate):
     client, _ = app_factory()
-    r = client.post("/api/interview", json={"candidate": CANDIDATE})
+    r = client.post("/api/interview", json={"candidate": candidate})
     assert r.status_code == 400
 
 
-def test_start_malformed_session_id_400(app_factory):
+def test_start_malformed_session_id_400(app_factory, candidate):
     client, _ = app_factory()
-    r = client.post("/api/interview", json={"sessionId": "   ", "candidate": CANDIDATE})
+    r = client.post("/api/interview", json={"sessionId": "   ", "candidate": candidate})
     assert r.status_code == 400
 
 
-def test_turn_asks_grounded_question(app_factory):
+def test_turn_asks_grounded_question(app_factory, start_interview, turn):
     client, _ = app_factory()
     start_interview(client)
     r = turn(client, "I built a RAG pipeline.")
@@ -56,7 +55,7 @@ def test_turn_asks_grounded_question(app_factory):
     assert "Day 7" in body["reply"]
 
 
-def test_full_interview_completes_with_feedback(app_factory):
+def test_full_interview_completes_with_feedback(app_factory, start_interview, turn):
     client, _ = app_factory()
     start_interview(client)
     done = None
@@ -74,7 +73,7 @@ def test_full_interview_completes_with_feedback(app_factory):
     assert isinstance(fb["next"], list) and len(fb["next"]) >= 1
 
 
-def test_questions_cover_min_8_and_4_days(app_factory):
+def test_questions_cover_min_8_and_4_days(app_factory, start_interview, turn):
     client, _ = app_factory()
     start_interview(client)
     questions = []
@@ -89,7 +88,7 @@ def test_questions_cover_min_8_and_4_days(app_factory):
     assert len(days_asked) >= 4
 
 
-def test_end_keyword_wraps_early(app_factory):
+def test_end_keyword_wraps_early(app_factory, start_interview, turn):
     client, _ = app_factory()
     start_interview(client)
     turn(client, "Some answer.")
@@ -99,34 +98,34 @@ def test_end_keyword_wraps_early(app_factory):
     assert body["feedback"]["summary"].startswith("Practice interview completed")
 
 
-def test_unknown_session_404(app_factory):
+def test_unknown_session_404(app_factory, turn):
     client, _ = app_factory()
     r = turn(client, "hello", session_id="nope")
     assert r.status_code == 404
 
 
-def test_empty_message_422(app_factory):
+def test_empty_message_422(app_factory, start_interview, turn):
     client, _ = app_factory()
     start_interview(client)
     r = turn(client, "")
     assert r.status_code == 422
 
 
-def test_whitespace_message_422(app_factory):
+def test_whitespace_message_422(app_factory, start_interview, turn):
     client, _ = app_factory()
     start_interview(client)
     r = turn(client, "   ")
     assert r.status_code == 422
 
 
-def test_message_too_long_413(app_factory):
+def test_message_too_long_413(app_factory, start_interview, turn):
     client, _ = app_factory()
     start_interview(client)
     r = turn(client, "x" * 4001)
     assert r.status_code == 413
 
 
-def test_non_string_message_400(app_factory):
+def test_non_string_message_400(app_factory, start_interview):
     client, _ = app_factory()
     start_interview(client)
     r = client.post("/api/interview", json={"sessionId": "sess-1", "message": 42})
@@ -139,7 +138,7 @@ def test_malformed_json_400(app_factory):
     assert r.status_code == 400
 
 
-def test_message_after_completion_409_with_report(app_factory):
+def test_message_after_completion_409_with_report(app_factory, start_interview, turn):
     client, _ = app_factory()
     start_interview(client)
     for i in range(8):
@@ -151,18 +150,18 @@ def test_message_after_completion_409_with_report(app_factory):
     assert r.json()["report"]["summary"]
 
 
-def test_start_with_message_ignored(app_factory):
+def test_start_with_message_ignored(app_factory, candidate):
     client, _ = app_factory()
     r = client.post(
         "/api/interview",
-        json={"sessionId": "s-ignored", "candidate": CANDIDATE, "message": "ignored"},
+        json={"sessionId": "s-ignored", "candidate": candidate, "message": "ignored"},
     )
     assert r.status_code == 200
     body = r.json()
     assert "Gerald" in body["reply"]
 
 
-def test_duplicate_start_resumes(app_factory):
+def test_duplicate_start_resumes(app_factory, start_interview):
     client, _ = app_factory()
     start_interview(client)
     r = start_interview(client)
@@ -170,14 +169,14 @@ def test_duplicate_start_resumes(app_factory):
     assert "Welcome back" in r.json()["reply"]
 
 
-def test_control_chars_sanitized(app_factory):
+def test_control_chars_sanitized(app_factory, start_interview, turn):
     client, _ = app_factory()
     start_interview(client)
     r = turn(client, "fine\x00\x01answer")
     assert r.status_code == 200
 
 
-def test_session_view_endpoint(app_factory):
+def test_session_view_endpoint(app_factory, start_interview, turn):
     client, _ = app_factory()
     start_interview(client)
     turn(client, "Answer one")
@@ -190,7 +189,7 @@ def test_session_view_endpoint(app_factory):
     assert view["transcript"][0]["role"] == "interviewer"
 
 
-def test_restart_preserves_session(tmp_path):
+def test_restart_preserves_session(tmp_path, start_interview, turn):
     """Store survives a full app restart: the next question continues the plan."""
     from fastapi.testclient import TestClient
 
@@ -216,7 +215,7 @@ def test_restart_preserves_session(tmp_path):
         assert view["turn_count"] == 2
 
 
-def test_ttl_expiry_404(app_factory):
+def test_ttl_expiry_404(app_factory, start_interview, turn):
     client, store = app_factory(ttl_hours=0)
     start_interview(client)
     time.sleep(0.05)
@@ -225,13 +224,13 @@ def test_ttl_expiry_404(app_factory):
     assert "expired" in r.json()["error"].lower()
 
 
-def test_rate_limit_429(app_factory):
+def test_rate_limit_429(app_factory, candidate):
     client, _ = app_factory(rate_limiter=RateLimiter(limit=3))
     for i in range(3):
         assert client.post(
-            "/api/interview", json={"sessionId": f"rl-{i}", "candidate": CANDIDATE}
+            "/api/interview", json={"sessionId": f"rl-{i}", "candidate": candidate}
         ).status_code == 200
-    r = client.post("/api/interview", json={"sessionId": "rl-3", "candidate": CANDIDATE})
+    r = client.post("/api/interview", json={"sessionId": "rl-3", "candidate": candidate})
     assert r.status_code == 429
     assert "Retry-After" in r.headers
 

@@ -29,55 +29,65 @@ CANDIDATE = CandidateProfile(
 )
 
 
+def _run(coro):
+    return asyncio.run(coro)
+
+
 # ---------------------------------------------------------------- repositories
 
-@pytest.mark.asyncio
-async def test_sqlite_store_roundtrip(tmp_path):
-    store = SqliteSessionStore(db_path=tmp_path / "t.db", ttl_hours=2.0)
-    await store.init()
-    row = StoredSession(
-        session_id="s1", candidate_json="{}", state_json="{}",
-        transcript_json="[]", status="active", report_json=None,
-        created_at=time.time(), updated_at=time.time(), turn_count=0,
-    )
-    await store.create(row)
-    loaded = await store.get("s1")
-    assert loaded is not None and loaded.session_id == "s1"
-    row.turn_count = 3
-    await store.save(row)
-    assert (await store.get("s1")).turn_count == 3
-    await store.close()
+def test_sqlite_store_roundtrip(tmp_path):
+    async def _body():
+        store = SqliteSessionStore(db_path=tmp_path / "t.db", ttl_hours=2.0)
+        await store.init()
+        row = StoredSession(
+            session_id="s1", candidate_json="{}", state_json="{}",
+            transcript_json="[]", status="active", report_json=None,
+            created_at=time.time(), updated_at=time.time(), turn_count=0,
+        )
+        await store.create(row)
+        loaded = await store.get("s1")
+        assert loaded is not None and loaded.session_id == "s1"
+        row.turn_count = 3
+        await store.save(row)
+        assert (await store.get("s1")).turn_count == 3
+        await store.close()
+
+    _run(_body())
 
 
-@pytest.mark.asyncio
-async def test_sqlite_store_ttl_expiry(tmp_path):
-    store = SqliteSessionStore(db_path=tmp_path / "t.db", ttl_hours=0)
-    await store.init()
-    row = StoredSession(
-        session_id="s1", candidate_json="{}", state_json="{}",
-        transcript_json="[]", status="active", report_json=None,
-        created_at=time.time(), updated_at=time.time(), turn_count=0,
-    )
-    await store.create(row)
-    time.sleep(0.05)
-    loaded = await store.get("s1")
-    assert loaded is not None and loaded.expired is True
-    assert await store.get("s1") is None
-    await store.close()
+def test_sqlite_store_ttl_expiry(tmp_path):
+    async def _body():
+        store = SqliteSessionStore(db_path=tmp_path / "t.db", ttl_hours=0)
+        await store.init()
+        row = StoredSession(
+            session_id="s1", candidate_json="{}", state_json="{}",
+            transcript_json="[]", status="active", report_json=None,
+            created_at=time.time(), updated_at=time.time(), turn_count=0,
+        )
+        await store.create(row)
+        time.sleep(0.05)
+        loaded = await store.get("s1")
+        assert loaded is not None and loaded.expired is True
+        assert await store.get("s1") is None
+        await store.close()
+
+    _run(_body())
 
 
-@pytest.mark.asyncio
-async def test_memory_store_mirrors_sqlite_semantics():
-    store = InMemorySessionStore(ttl_hours=0)
-    row = StoredSession(
-        session_id="s1", candidate_json="{}", state_json="{}",
-        transcript_json="[]", status="active", report_json=None,
-        created_at=time.time(), updated_at=time.time(), turn_count=0,
-    )
-    await store.create(row)
-    time.sleep(0.05)
-    assert (await store.get("s1")).expired is True
-    assert await store.get("s1") is None
+def test_memory_store_mirrors_sqlite_semantics():
+    async def _body():
+        store = InMemorySessionStore(ttl_hours=0)
+        row = StoredSession(
+            session_id="s1", candidate_json="{}", state_json="{}",
+            transcript_json="[]", status="active", report_json=None,
+            created_at=time.time(), updated_at=time.time(), turn_count=0,
+        )
+        await store.create(row)
+        time.sleep(0.05)
+        assert (await store.get("s1")).expired is True
+        assert await store.get("s1") is None
+
+    _run(_body())
 
 
 # ------------------------------------------------------------- serialization
@@ -191,57 +201,67 @@ class _FailingProvider:
         return _Decision(action="ask_new", day=7)
 
 
-@pytest.mark.asyncio
-async def test_mock_provider_chat_and_structured():
-    provider = MockLLMProvider(chat_replies=["Hello there."])
-    assert await provider.chat([{"role": "user", "content": "hi"}]) == "Hello there."
-    result = await provider.structured([], _Decision)
-    assert result.action == "mock" and result.day == 0
+def test_mock_provider_chat_and_structured():
+    async def _body():
+        provider = MockLLMProvider(chat_replies=["Hello there."])
+        assert await provider.chat([{"role": "user", "content": "hi"}]) == "Hello there."
+        result = await provider.structured([], _Decision)
+        assert result.action == "mock" and result.day == 0
+
+    _run(_body())
 
 
-@pytest.mark.asyncio
-async def test_gateway_retries_transient_failure():
-    provider = _FailingProvider(fail_times=2)
-    gateway = LLMGateway(primary=provider, sleep=_no_sleep)
-    assert await gateway.chat([{"role": "user", "content": "hi"}]) == "ok"
-    assert provider._calls == 3
+def test_gateway_retries_transient_failure():
+    async def _body():
+        provider = _FailingProvider(fail_times=2)
+        gateway = LLMGateway(primary=provider, sleep=_no_sleep)
+        assert await gateway.chat([{"role": "user", "content": "hi"}]) == "ok"
+        assert provider._calls == 3
+
+    _run(_body())
 
 
-@pytest.mark.asyncio
-async def test_gateway_uses_fallback_after_retries():
-    provider = _FailingProvider(fail_times=99)
-    fallback = MockLLMProvider(chat_replies=["fallback"])
-    gateway = LLMGateway(primary=provider, fallback=fallback, sleep=_no_sleep)
-    assert await gateway.chat([]) == "fallback"
-    assert fallback.chat_calls == 1
+def test_gateway_uses_fallback_after_retries():
+    async def _body():
+        provider = _FailingProvider(fail_times=99)
+        fallback = MockLLMProvider(chat_replies=["fallback"])
+        gateway = LLMGateway(primary=provider, fallback=fallback, sleep=_no_sleep)
+        assert await gateway.chat([]) == "fallback"
+        assert fallback.chat_calls == 1
+
+    _run(_body())
 
 
-@pytest.mark.asyncio
-async def test_gateway_raises_when_everything_fails():
-    provider = _FailingProvider(fail_times=99)
-    gateway = LLMGateway(primary=provider, sleep=_no_sleep)
-    with pytest.raises(LLMGatewayError):
-        await gateway.chat([])
+def test_gateway_raises_when_everything_fails():
+    async def _body():
+        provider = _FailingProvider(fail_times=99)
+        gateway = LLMGateway(primary=provider, sleep=_no_sleep)
+        with pytest.raises(LLMGatewayError):
+            await gateway.chat([])
+
+    _run(_body())
 
 
-@pytest.mark.asyncio
-async def test_gateway_structured_reprompts_on_invalid_json():
-    calls = []
+def test_gateway_structured_reprompts_on_invalid_json():
+    async def _body():
+        calls = []
 
-    class _FakeProvider:
-        name = "fake"
+        class _FakeProvider:
+            name = "fake"
 
-        async def structured(self, messages, schema, temperature=0.0):
-            calls.append(len(messages))
-            if len(messages) == 1:
-                raise LLMError("invalid JSON from provider")
-            return _Decision(action="ask_new", day=7)
+            async def structured(self, messages, schema, temperature=0.0):
+                calls.append(len(messages))
+                if len(messages) == 1:
+                    raise LLMError("invalid JSON from provider")
+                return _Decision(action="ask_new", day=7)
 
-        async def chat(self, messages, temperature=0.2, max_tokens=None):
-            return ""
+            async def chat(self, messages, temperature=0.2, max_tokens=None):
+                return ""
 
-    gateway = LLMGateway(primary=_FakeProvider(), sleep=_no_sleep)
-    result = await gateway.structured([{"role": "user", "content": "go"}], _Decision)
-    assert result.day == 7
-    assert len(calls) == 2
-    assert calls[1] == 2  # original + repair message
+        gateway = LLMGateway(primary=_FakeProvider(), sleep=_no_sleep)
+        result = await gateway.structured([{"role": "user", "content": "go"}], _Decision)
+        assert result.day == 7
+        assert len(calls) == 2
+        assert calls[1] == 2  # original + repair message
+
+    _run(_body())

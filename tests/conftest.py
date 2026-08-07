@@ -43,12 +43,31 @@ def app_factory(tmp_path: Path):
     yield _factory
 
 
-def start_interview(client: TestClient, session_id: str = "sess-1"):
-    return client.post(
-        "/api/interview",
-        json={"sessionId": session_id, "candidate": CANDIDATE},
-    )
+@pytest.fixture()
+def client(app_factory) -> TestClient:
+    client, _ = app_factory()
+    return client
 
 
-def turn(client: TestClient, message: str, session_id: str = "sess-1"):
-    return client.post("/api/interview", json={"sessionId": session_id, "message": message})
+@pytest.fixture()
+def candidate() -> dict:
+    return CANDIDATE
+
+
+@pytest.fixture()
+def start_interview():
+    def _start(client: TestClient, session_id: str = "sess-1"):
+        return client.post(
+            "/api/interview",
+            json={"sessionId": session_id, "candidate": CANDIDATE},
+        )
+
+    return _start
+
+
+@pytest.fixture()
+def turn():
+    def _turn(client: TestClient, message: str, session_id: str = "sess-1"):
+        return client.post("/api/interview", json={"sessionId": session_id, "message": message})
+
+    return _turn
