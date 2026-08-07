@@ -123,3 +123,21 @@ This log documents every prompt given to AI assistants (opencode + Breeth memory
 - Verified: 89/89 tests green (67 prior, zero regressions); grounding latency 0.08 ms (pure arithmetic, no new network calls)
 
 **Outcome:** Every score, follow-up and report is now traceable to curriculum evidence; low retrieval confidence is stated explicitly, never hidden. Committed `dd7e214` + pushed.
+
+---
+
+### 2026-08-07 ~23:00 IST — Milestone 5 (Premium Frontend Experience Layer)
+
+**Prompt:** Full M5 brief: "Milestones 1-4 COMPLETE and FROZEN… build the experience layer around the frozen backend." — 3-screen flow (Landing → Interview Room → Engineering Assessment Report), demo personas, all-candidates browser, live progress panel, grounded follow-up chip, hints, /hint + /end commands, resume in-progress sessions, evidence-driven report with verdict + coverage map + print/export, React + Tailwind, quality bar (responsive, dark, a11y, performance, tests), zero backend changes.
+
+**What the AI did (M5 — Frontend experience layer):**
+- **`frontend/`** — new Vite + React 18 + TypeScript + Tailwind v4 (@tailwindcss/vite) app; `src/main.tsx` + `src/App.tsx` (HashRouter: `/`, `/interview`, `/report`); dark-only design system in `src/styles/index.css` (ink/aurora/mint tokens, Inter Variable, fade-up/typing/progress-fill keyframes)
+- **`src/lib/api.ts`** — typed client over the frozen API contract (POST /api/interview, GET /api/interview/{id}), 429 auto-retry, ApiError with hint/request_id, localStorage session persistence (`viva.session`), `newSessionId()` = `viva-{candidateId}-{base36}`
+- **`src/lib/interview.ts` + `interview.test.ts`** — pure analysis helpers: `analyzeTranscript` (question/probe/hint counts, per-day signals, coverage %, grounded follow-up reason, phases), `phaseFor`, `extractDayNumbers`, `verdictFromSummary`, `CORE_DAYS`; 9 vitest tests
+- **`src/lib/data.ts`** — curriculum accessors + DEMO_PROFILES (CAND-010 stretch, CAND-001 strong senior, CAND-019 non-technical) over copies of the frozen JSON datasets
+- **Pages** — `Landing` (hero, persona picker, all-20 browser with mission heat, how-it-works), `InterviewRoom` (timeline, aria-live announcements, live sidebar: question x/8, phase rail, 8-core-day coverage grid, grounded follow-up card, hint/End, composer with /hint + /end, resume in-progress sessions, auto-start from pending candidate), `Report` (verdict badge, 3 metrics, strengths/gaps/next with Day-highlight chips, module-wise 31-day coverage map, per-day probe table, transcript accordion, print stylesheet)
+- **`app/main.py`** — additive: serves `frontend/dist` when present (StaticFiles for /assets + SPA index.html fallback, /api/* excluded); frozen interview logic untouched
+- Bug fixes during build: hint entries previously counted as questions in `analyzeTranscript` (fixed + test); auto-start effect wired (interview never began without it); Report candidate name from local session
+- Verified: frontend `tsc -b && vite build` clean (229 kB JS, 69.7 kB gzip), 9/9 vitest green, backend 89/89 green with static mount
+
+**Outcome:** Judges-facing demo flows end to end (pick persona → adaptive interview → printable assessment) with zero changes to the frozen backend. Commit pending push.

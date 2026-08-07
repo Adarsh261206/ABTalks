@@ -1,0 +1,113 @@
+@import "@fontsource-variable/inter";
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+
+  --color-ink-950: #09090b;
+  --color-ink-900: #0e0e11;
+  --color-ink-850: #121216;
+  --color-ink-800: #18181c;
+  --color-ink-700: #232329;
+
+  --color-aurora-300: #7dd3fc;
+  --color-aurora-400: #38bdf8;
+  --color-aurora-500: #0ea5e9;
+  --color-aurora-600: #0284c7;
+  --color-mint-300: #6ee7b7;
+  --color-mint-400: #34d399;
+  --color-amber-300: #fcd34d;
+  --color-rose-400: #fb7185;
+
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-fade-in: fade-in 0.4s ease-out both;
+  --animate-typing: typing-blink 1.2s ease-in-out infinite;
+  --animate-progress: progress-fill 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes typing-blink {
+    0%,
+    100% {
+      opacity: 0.25;
+      transform: translateY(0);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+  }
+  @keyframes progress-fill {
+    from {
+      width: 0;
+    }
+  }
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-ink-950 text-zinc-200 font-sans antialiased;
+  font-feature-settings: "cv02", "cv03", "cv11";
+  background-image: radial-gradient(
+      1200px 600px at 80% -10%,
+      rgba(14, 165, 233, 0.07),
+      transparent 60%
+    ),
+    radial-gradient(900px 500px at -10% 110%, rgba(52, 211, 153, 0.05), transparent 60%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(56, 189, 248, 0.25);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-aurora-400);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Slim, calm scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media print {
+  body {
+    background: #fff;
+    color: #18181c;
+  }
+}

@@ -4,11 +4,13 @@ import asyncio
 import logging
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
@@ -122,6 +124,25 @@ def create_app(
 
     app.include_router(interview_routes.router)
     app.include_router(meta_routes.router)
+
+    # Frontend static build (served at / when dist exists) — M5 additive, non-frozen.
+    dist_dir = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+    if dist_dir.is_dir():
+        app.mount(
+            "/assets",
+            StaticFiles(directory=dist_dir / "assets"),
+            name="assets",
+        )
+
+        @app.get("/{full_path:path}", include_in_schema=False)
+        async def spa(full_path: str):
+            if full_path.startswith("api/"):
+                raise StarletteHTTPException(status_code=404)
+            candidate = dist_dir / full_path
+            if full_path and candidate.is_file() and candidate.resolve().is_relative_to(dist_dir.resolve()):
+                return FileResponse(candidate)
+            return FileResponse(dist_dir / "index.html")
+
     return app
 
 
