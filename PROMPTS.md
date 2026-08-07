@@ -37,3 +37,17 @@ This log documents every prompt given to AI assistants (opencode + Breeth memory
 **Outcome:** PLANNING.md committed — implementation begins at M1.
 
 ---
+
+### 2026-08-07 ~21:00 IST — Milestone 1 Execution (API contract + session store)
+
+**Prompt:** Full M1 execution directive (CTO mode): "Build the BEST possible version. Never sacrifice stability for features. No TODOs. Production quality. Milestone by milestone. Deploy early." — execute Milestone 1 only: `POST /api/interview` contract, SQLite session store, error contract, /health, pytest.
+
+**What the AI did:**
+- Built `app/` per PLANNING.md folder structure: `config.py` (pydantic-settings, VIVA_ env prefix), `schemas.py` (contract models), `state/store.py` (SQLite WAL store with TTL expiry + restart persistence), `state/models.py` (InterviewState/TranscriptEntry), `core/engine.py` (M1 deterministic interview state machine — 8 grounded questions across core days [7,8,10,12,16,22,23,31], objective→natural-question humanization, end-keywords, honest deterministic feedback), `routes/interview.py` (manual body parsing for exact error contract: 400/404/409/413/415/422/429; per-session async locks; sliding-window rate limiter), `routes/meta.py` (/health, GET session view), `main.py` (app factory, request-ID middleware, normalized error bodies, TTL cleanup task, CORS)
+- Wrote 24 contract tests (spec compliance, restart persistence, TTL expiry, rate limiting, request IDs, control-char sanitization, duplicate-start resume, 409-after-completion with report)
+- Verified live: uvicorn + curl full cycle; restart preserved session (continued at Day 10, not Day 7); full 8-question interview completed with feedback; session view shows covered days [7,8,10,12,16,22,23,31]
+- Fixed during review: FastAPI dependency-injection issue (store/engine via `request.app.state`), HTTPException handler losing headers (Retry-After), feedback summary counting turns instead of questions, awkward "Understand how X?" → "Walk me through how X"
+
+**Outcome:** 24/24 tests green. M1 complete — committed & pushed.
+
+---
