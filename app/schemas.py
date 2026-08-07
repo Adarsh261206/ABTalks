@@ -1,43 +1,31 @@
+"""API boundary models.
+
+Contract schemas for the HTTP layer. Domain models are re-exported here for
+backwards-compatible imports; the definitions live in `app.domain.*`.
+"""
+
 from __future__ import annotations
 
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.domain.candidate import CandidateProfile, Member, Mission, Signals
+from app.domain.interview import Feedback
+
 SESSION_ID_MAX = 128
 
-
-class Mission(BaseModel):
-    day: int
-    title: str = ""
-    passed: bool = False
-    attempts: int = 0
-    skipped: bool = False
-
-
-class Member(BaseModel):
-    id: str
-    name: str = ""
-    jobRole: str = ""
-    yearsExperience: int = 0
-    education: str = ""
-    status: str = ""
-
-
-class Signals(BaseModel):
-    commitDays: int = 0
-    missionsCompleted: int = 0
-    missionsFirstTry: int = 0
-
-
-class CandidateProfile(BaseModel):
-    member: Member
-    missions: list[Mission] = Field(default_factory=list)
-    signals: Signals | None = None
-
-    @property
-    def display_name(self) -> str:
-        return self.member.name or "Candidate"
+__all__ = [
+    "CandidateProfile",
+    "Member",
+    "Mission",
+    "Signals",
+    "Feedback",
+    "InterviewRequest",
+    "InterviewResponse",
+    "ErrorResponse",
+    "SessionView",
+]
 
 
 class InterviewRequest(BaseModel):
@@ -54,13 +42,6 @@ class InterviewRequest(BaseModel):
         if any(ord(c) < 32 for c in v):
             raise ValueError("sessionId contains control characters")
         return v
-
-
-class Feedback(BaseModel):
-    summary: str
-    strengths: list[str] = Field(default_factory=list)
-    gaps: list[str] = Field(default_factory=list)
-    next: list[str] = Field(default_factory=list)
 
 
 class InterviewResponse(BaseModel):

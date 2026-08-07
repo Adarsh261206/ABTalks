@@ -51,3 +51,22 @@ This log documents every prompt given to AI assistants (opencode + Breeth memory
 **Outcome:** 24/24 tests green. M1 complete — committed & pushed.
 
 ---
+
+### 2026-08-07 ~21:45 IST — Senior Refactor (pre-M2 debt reduction)
+
+**Prompt:** "Before implementing Milestone 2, perform a senior engineering refactor. Reduce future technical debt by extracting interfaces, services, providers, repositories, prompts, and domain models. Do not change functionality. Do not add new features. Preserve all passing tests. The objective is to make the codebase capable of supporting the remaining milestones without requiring major rewrites."
+
+**What the AI did (behavior-preserving, zero new features):**
+- **Domain models** → `app/domain/`: `candidate.py` (CandidateProfile/Member/Mission/Signals), `interview.py` (InterviewState/TranscriptEntry/Question/EngineTurn/Feedback); `schemas.py` is now a pure API boundary re-exporting domain models
+- **Repositories** → `app/state/`: `repository.py` (SessionRepository Protocol + StoredSession row), `store.py` (SqliteSessionStore), `memory_store.py` (InMemorySessionStore for tests/mock mode), `serialization.py` (domain↔row mapping, single place)
+- **Services** → `app/services/`: `interview.py` (InterviewService use-case with domain errors SessionNotFound/Expired/Completed), `ratelimit.py` (RateLimiter, clock-injectable, RateLimitExceeded), `locks.py` (SessionLockRegistry)
+- **Providers** → `app/infrastructure/`: `llm.py` (LLMProvider Protocol), `llm_client.py` (OpenAICompatibleProvider + schema-JSON parser), `llm_mock.py` (MockLLMProvider, schema-shaped deterministic output)
+- **Gateway** → `app/core/llm.py` (LLMGateway: retry w/ backoff → schema re-prompt loop → fallback provider; per PLANNING.md Phase 11 ladder)
+- **Prompts** → `app/core/prompts.py` (all interviewer strings/templates/humanize/END_KEYWORDS in one registry for M2 agent prompts)
+- **Curriculum** → `app/core/curriculum.py` (DayInfo + loader; M4 retrieval source)
+- **Routes** are now thin (HTTP parsing + status mapping only); `main.py` is the composition root wiring store/engine/services/providers into `app.state`; engine unchanged in behavior
+- Fixed during review: mock schema builder broke on required `Field(...)` fields (PydanticUndefined), test sleep lambda not awaitable, removed `__import__` hacks, pyproject switched to package discovery (`app*`), openai dep added
+
+**Outcome:** 24 original contract tests + 13 new layer tests = **37/37 green**; live smoke test confirms identical behavior (humanized questions, 8-question completion, 409-with-report). Committed & pushed.
+
+---

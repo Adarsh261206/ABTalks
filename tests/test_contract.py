@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-import json
 import time
 
-from app.config import settings
-from app.state.store import SessionStore
-from app.routes.interview import _limiter_hits
+from app.services.ratelimit import RateLimiter
 from conftest import CANDIDATE, start_interview, turn
 
 CORE_DAYS = [7, 8, 10, 12, 16, 22, 23, 31]
@@ -200,15 +197,16 @@ def test_restart_preserves_session(tmp_path):
     from app.main import create_app
 
     from app.core.engine import InterviewEngine
+    from app.state.store import SqliteSessionStore
 
     db = tmp_path / "restart.db"
-    store1 = SessionStore(db_path=db, ttl_hours=2.0)
+    store1 = SqliteSessionStore(db_path=db, ttl_hours=2.0)
     app1 = create_app(store=store1, engine=InterviewEngine())
     with TestClient(app1) as client:
         start_interview(client)
         turn(client, "First answer")
 
-    store2 = SessionStore(db_path=db, ttl_hours=2.0)
+    store2 = SqliteSessionStore(db_path=db, ttl_hours=2.0)
     app2 = create_app(store=store2, engine=InterviewEngine())
     with TestClient(app2) as client:
         r = turn(client, "Second answer")
@@ -227,10 +225,8 @@ def test_ttl_expiry_404(app_factory):
     assert "expired" in r.json()["error"].lower()
 
 
-def test_rate_limit_429(app_factory, monkeypatch):
-    monkeypatch.setattr(settings, "rate_limit_per_minute", 3)
-    _limiter_hits.clear()
-    client, _ = app_factory()
+def test_rate_limit_429(app_factory):
+    client, _ = app_factory(rate_limiter=RateLimiter(limit=3))
     for i in range(3):
         assert client.post(
             "/api/interview", json={"sessionId": f"rl-{i}", "candidate": CANDIDATE}

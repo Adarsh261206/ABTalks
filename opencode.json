@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "breeth": {
+      "type": "remote",
+      "url": "https://mcp.thebreeth.com/mcp",
+      "headers": {
+        "Authorization": "Bearer {env:BREETH_API_KEY}"
+      }
+    }
+  }
+}

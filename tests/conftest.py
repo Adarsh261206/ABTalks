@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.core.engine import InterviewEngine
 from app.main import create_app
-from app.state.store import SessionStore
+from app.state.store import SqliteSessionStore
 
 CANDIDATE = {
     "member": {
@@ -30,13 +30,12 @@ CANDIDATE = {
 
 @pytest.fixture()
 def app_factory(tmp_path: Path):
-    from app.routes.interview import _limiter_hits
-
-    _limiter_hits.clear()
-
-    def _factory(ttl_hours: float = 2.0) -> tuple[TestClient, SessionStore]:
-        store = SessionStore(db_path=tmp_path / "test.db", ttl_hours=ttl_hours)
-        app = create_app(store=store, engine=InterviewEngine())
+    def _factory(
+        ttl_hours: float = 2.0,
+        rate_limiter=None,
+    ) -> tuple[TestClient, SqliteSessionStore]:
+        store = SqliteSessionStore(db_path=tmp_path / "test.db", ttl_hours=ttl_hours)
+        app = create_app(store=store, engine=InterviewEngine(), rate_limiter=rate_limiter)
         client = TestClient(app)
         client.__enter__()
         return client, store

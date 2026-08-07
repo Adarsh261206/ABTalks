@@ -5,7 +5,7 @@ import json
 from fastapi import APIRouter, HTTPException, Request
 
 from app.schemas import ErrorResponse, SessionView
-from app.state.store import SessionStore
+from app.state.repository import SessionRepository
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ async def health() -> dict[str, str]:
 
 @router.get("/api/interview/{session_id}")
 async def session_view(session_id: str, request: Request) -> SessionView:
-    store: SessionStore = request.app.state.store
+    store: SessionRepository = request.app.state.store
     row = await store.get(session_id)
     if row is None or row.expired:
         raise HTTPException(

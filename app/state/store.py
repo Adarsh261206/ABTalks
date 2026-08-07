@@ -1,28 +1,16 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
 from pathlib import Path
 
 import aiosqlite
 
-
-@dataclass
-class StoredSession:
-    session_id: str
-    candidate_json: str
-    state_json: str
-    transcript_json: str
-    status: str
-    report_json: str | None
-    created_at: float
-    updated_at: float
-    turn_count: int
-    expired: bool = False
+from app.state.repository import StoredSession
 
 
-class SessionStore:
-    """SQLite-backed session store. Survives restarts; TTL-expires stale active sessions."""
+class SqliteSessionStore:
+    """SQLite-backed SessionRepository. Survives restarts; TTL-expires
+    stale active sessions; WAL mode for concurrency safety."""
 
     def __init__(self, db_path: Path, ttl_hours: float) -> None:
         self._db_path = db_path
@@ -84,8 +72,6 @@ class SessionStore:
         await self._conn.commit()
 
     async def get(self, session_id: str) -> StoredSession | None:
-        """Load a session. Stale active sessions are expired (deleted) and returned
-        with `expired=True` so the caller can answer 404 with an `expired` hint."""
         assert self._conn is not None
         cur = await self._conn.execute(
             "SELECT * FROM sessions WHERE id = ?", (session_id,)
@@ -97,29 +83,8 @@ class SessionStore:
         if row["status"] == "active" and now - row["updated_at"] > self._ttl_seconds:
             await self._conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
             await self._conn.commit()
-            return StoredSession(
-                session_id=row["id"],
-                candidate_json=row["candidate_json"],
-                state_json=row["state_json"],
-                transcript_json=row["transcript_json"],
-                status=row["status"],
-                report_json=row["report_json"],
-                created_at=row["created_at"],
-                updated_at=row["updated_at"],
-                turn_count=row["turn_count"],
-                expired=True,
-            )
-        return StoredSession(
-            session_id=row["id"],
-            candidate_json=row["candidate_json"],
-            state_json=row["state_json"],
-            transcript_json=row["transcript_json"],
-            status=row["status"],
-            report_json=row["report_json"],
-            created_at=row["created_at"],
-            updated_at=row["updated_at"],
-            turn_count=row["turn_count"],
-        )
+            return self._row_to_session(row, expired=True)
+        return self._row_to_session(row)
 
     async def save(self, session: StoredSession) -> None:
         assert self._conn is not None
@@ -144,12 +109,25 @@ class SessionStore:
         await self._conn.commit()
 
     async def cleanup_expired(self) -> int:
-        """Delete stale active sessions; returns the number removed."""
         assert self._conn is not None
-        now = time.time()
-        cutoff = now - self._ttl_seconds
+        cutoff = time.time() - self._ttl_seconds
         cur = await self._conn.execute(
             "DELETE FROM sessions WHERE status = 'active' AND updated_at < ?", (cutoff,)
         )
         await self._conn.commit()
         return cur.rowcount or 0
+
+    @staticmethod
+    def _row_to_session(row: aiosqlite.Row, expired: bool = False) -> StoredSession:
+        return StoredSession(
+            session_id=row["id"],
+            candidate_json=row["candidate_json"],
+            state_json=row["state_json"],
+            transcript_json=row["transcript_json"],
+            status=row["status"],
+            report_json=row["report_json"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
+            turn_count=row["turn_count"],
+            expired=expired,
+        )

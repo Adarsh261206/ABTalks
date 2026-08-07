@@ -13,27 +13,50 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
 from app.core.engine import InterviewEngine
+from app.core.llm import LLMGateway
+from app.infrastructure.llm import LLMProvider
+from app.infrastructure.llm_client import OpenAICompatibleProvider
+from app.infrastructure.llm_mock import MockLLMProvider
 from app.routes import interview as interview_routes
 from app.routes import meta as meta_routes
-from app.state.store import SessionStore
+from app.services.interview import InterviewService
+from app.services.locks import SessionLockRegistry
+from app.services.ratelimit import RateLimiter
+from app.state.repository import SessionRepository
+from app.state.store import SqliteSessionStore
 
 logger = logging.getLogger("viva")
 
 
 def create_app(
-    store: SessionStore | None = None,
+    store: SessionRepository | None = None,
     engine: InterviewEngine | None = None,
+    rate_limiter: RateLimiter | None = None,
+    locks: SessionLockRegistry | None = None,
+    llm_gateway: LLMGateway | None = None,
 ) -> FastAPI:
-    session_store = store or SessionStore(
+    """Composition root: wires repository, engine, services and providers."""
+    session_store = store or SqliteSessionStore(
         db_path=settings.db_path, ttl_hours=settings.session_ttl_hours
     )
     interview_engine = engine or InterviewEngine()
+    limiter = rate_limiter or RateLimiter(limit=settings.rate_limit_per_minute)
+    lock_registry = locks or SessionLockRegistry()
+    gateway = llm_gateway or _default_llm_gateway()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        await session_store.init()
+        init = getattr(session_store, "init", None)
+        if init is not None:
+            await init()
         app.state.store = session_store
         app.state.engine = interview_engine
+        app.state.rate_limiter = limiter
+        app.state.locks = lock_registry
+        app.state.llm_gateway = gateway
+        app.state.interview_service = InterviewService(
+            store=session_store, engine=interview_engine
+        )
         cleanup = asyncio.create_task(_ttl_cleanup(session_store))
         try:
             yield
@@ -101,7 +124,20 @@ def create_app(
     return app
 
 
-async def _ttl_cleanup(store: SessionStore) -> None:
+def _default_llm_gateway() -> LLMGateway:
+    """Provider ladder: configured provider → mock (demo never dies)."""
+    if settings.llm_provider == "openai" and settings.openai_api_key:
+        primary: LLMProvider = OpenAICompatibleProvider(
+            api_key=settings.openai_api_key,
+            model=settings.llm_model or "gpt-4o-mini",
+            base_url=settings.llm_base_url or None,
+        )
+    else:
+        primary = MockLLMProvider()
+    return LLMGateway(primary=primary)
+
+
+async def _ttl_cleanup(store: SessionRepository) -> None:
     while True:
         try:
             await asyncio.sleep(600)
