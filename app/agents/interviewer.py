@@ -12,6 +12,8 @@ import logging
 from app.core.curriculum import DayInfo
 from app.core.llm import LLMGateway, LLMGatewayError
 from app.core.prompts import (
+    FOLLOWUP_USER,
+    HINT_USER,
     INTERVIEWER_QUESTION_USER,
     INTERVIEWER_SYSTEM,
     INTERVIEWER_WELCOME_USER,
@@ -21,12 +23,14 @@ from app.core.prompts import (
 )
 from app.domain.candidate import CandidateProfile
 from app.domain.interview import Question
+from app.agents.grader import ProbeTarget
 
 logger = logging.getLogger("viva.agents.interviewer")
 
 
 class Interviewer:
-    """Renders welcome and questions; LLM first, deterministic fallback."""
+    """Renders welcome, questions, follow-ups and hints; LLM first,
+    deterministic fallback."""
 
     def __init__(self, gateway: LLMGateway, use_llm: bool = False) -> None:
         self._gateway = gateway
@@ -76,6 +80,7 @@ class Interviewer:
                                 day=question.day,
                                 title=day.title if day else "",
                                 day_type=day.type if day else "concept",
+                                difficulty=question.difficulty,
                                 objectives="; ".join(day.objectives) if day else "",
                             ),
                         },
@@ -87,6 +92,71 @@ class Interviewer:
                 logger.warning("interviewer question fell back to template: %s", exc)
         return self._fallback_question(question, day)
 
+    async def render_followup(
+        self,
+        target: ProbeTarget,
+        day: DayInfo | None,
+        candidate: CandidateProfile,
+    ) -> str:
+        if self._use_llm:
+            try:
+                return await self._gateway.chat(
+                    [
+                        {"role": "system", "content": INTERVIEWER_SYSTEM},
+                        {
+                            "role": "user",
+                            "content": FOLLOWUP_USER.format(
+                                answer=target.ref_quote,
+                                kind=target.kind,
+                                target=target.target,
+                                ref_day=target.ref_day,
+                            ),
+                        },
+                    ],
+                    temperature=0.4,
+                    max_tokens=300,
+                )
+            except LLMGatewayError as exc:
+                logger.warning("interviewer follow-up fell back to template: %s", exc)
+        return self._fallback_followup(target, day)
+
+    async def render_hint(
+        self,
+        day: DayInfo | None,
+        difficulty: str,
+    ) -> str:
+        if self._use_llm:
+            try:
+                return await self._gateway.chat(
+                    [
+                        {"role": "system", "content": INTERVIEWER_SYSTEM},
+                        {
+                            "role": "user",
+                            "content": HINT_USER.format(
+                                day=day.day if day else "?",
+                                title=day.title if day else "",
+                                difficulty=difficulty,
+                                objectives="; ".join(day.objectives) if day else "",
+                            ),
+                        },
+                    ],
+                    temperature=0.3,
+                    max_tokens=200,
+                )
+            except LLMGatewayError as exc:
+                logger.warning("interviewer hint fell back to template: %s", exc)
+        day_label = f"Day {day.day}" if day else "this topic"
+        objective = day.objectives[0].rstrip(".") if day and day.objectives else ""
+        if objective:
+            return (
+                f"Here's a starting point for {day_label}: think about {objective.lower()}. "
+                "Take your time — I'll wait."
+            )
+        return (
+            f"Here's a starting point for {day_label}: focus on the core ideas from "
+            "your cohort notes. Take your time — I'll wait."
+        )
+
     def _fallback_question(self, question: Question, day: DayInfo | None) -> str:
         if day is None:
             return f"Let's talk about Day {question.day}. What did you build that day?"
@@ -95,6 +165,30 @@ class Interviewer:
         if not stem:
             return f"Let's talk about Day {question.day} — {day.title}. Tell me about your work on it."
         return question_template(day=question.day, title=day.title, stem=stem)
+
+    @staticmethod
+    def _fallback_followup(target: ProbeTarget, day: DayInfo | None) -> str:
+        day_label = f"Day {target.ref_day}" if target.ref_day else "this"
+        if target.kind == "challenge":
+            return (
+                f"Hold on — you said \"{target.ref_quote}\". Let's slow down on "
+                f"{day_label}. Your mission record shows this wasn't completed — "
+                "walk me through the parts you actually built and where you got stuck."
+            )
+        if target.kind == "clarify":
+            return (
+                f"You said \"{target.ref_quote}\" — could you be more concrete? "
+                "Tell me the specific steps, not just the topic."
+            )
+        if target.kind == "verify":
+            return (
+                f"Let's stress-test that: {target.target}. How would you defend "
+                f"that choice for {day_label}?"
+            )
+        return (
+            f"You mentioned {target.target} — walk me through how you approached "
+            f"it and what you measured."
+        )
 
 
 def _profile_summary(candidate: CandidateProfile) -> str:

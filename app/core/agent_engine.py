@@ -1,12 +1,11 @@
-"""M2 interview core: profile-aware, graded, agent-rendered engine.
+"""M2/M3 interview core: profile-aware, belief-driven, agent-rendered engine.
 
 Same contract as the M1 `InterviewEngine` (start/process over
-`InterviewState`), so the service layer and routes are unchanged: the
-Director plans, the Grader scores each answer into the belief state, the
-Interviewer renders, and the Reporter writes the final feedback. When the
-LLM is offline (mock provider) every agent degrades to a deterministic
-fallback and the interview still satisfies the hard minimums
-(>= 8 questions, >= 4 days, valid feedback).
+`InterviewState`), so the service layer and routes are unchanged. M3 flow
+per turn: grade the last answer -> update the belief state -> the Director
+decides (new question / follow-up / hint) -> the Interviewer renders.
+Every agent degrades to a deterministic fallback offline, and the hard
+minimums (>= 8 questions, >= 4 days, valid feedback) hold in both modes.
 """
 
 from __future__ import annotations
@@ -15,19 +14,23 @@ import logging
 from pathlib import Path
 
 from app.agents.director import Director
-from app.agents.grader import Grader
+from app.agents.grader import Grader, ProbeTarget, build_probe_target
 from app.agents.interviewer import Interviewer
 from app.agents.reporter import Reporter
 from app.config import settings
+from app.core.belief import init_belief_state, update_belief
 from app.core.curriculum import DayInfo, load_curriculum
 from app.core.llm import LLMGateway
 from app.core.prompts import COMPLETION_REPLY, END_KEYWORDS, PHASES
-from app.core.profile import ProfileAnalysis, analyze_profile
+from app.core.profile import ProfileAnalysis, analyze_profile, prior_for_day
 from app.domain.candidate import CandidateProfile
 from app.domain.interview import EngineTurn, InterviewState, TranscriptEntry
 from app.infrastructure.llm_mock import MockLLMProvider
 
 logger = logging.getLogger("viva.engine")
+
+RECENT_SCORES_KEEP = 2
+MAX_OVERCLAIMS = 5
 
 
 class AgenticInterviewEngine:
@@ -50,6 +53,7 @@ class AgenticInterviewEngine:
         self._gateway = gateway or LLMGateway(primary=MockLLMProvider())
         if use_llm is None:
             use_llm = not self._gateway.uses_mock_primary
+        self._use_llm = use_llm
         self._director = Director(self.curriculum, default_questions)
         self._interviewer = Interviewer(self._gateway, use_llm)
         self._grader = Grader(self._gateway, use_llm)
@@ -61,7 +65,9 @@ class AgenticInterviewEngine:
 
     async def start(self, state: InterviewState, candidate: CandidateProfile) -> str:
         state.candidate = candidate
-        state.plan = self._director.build_plan(analyze_profile(candidate))
+        analysis = analyze_profile(candidate)
+        state.plan = self._director.build_plan(analysis)
+        state.belief_state = init_belief_state(analysis)
         welcome = await self._interviewer.render_welcome(candidate)
         state.transcript.append(TranscriptEntry(role="interviewer", text=welcome))
         return welcome
@@ -81,14 +87,21 @@ class AgenticInterviewEngine:
         if force_wrap:
             return await self._wrap_up(state, reason="completed")
 
-        if state.asked:
-            await self._grade_answer(state, message)
+        grade = await self._grade_answer(state, message) if state.asked else None
+        action = self._director.decide(state, grade, message, use_llm=self._use_llm)
+
+        if action == "hint":
+            return await self._give_hint(state)
+        if action == "follow_up" and grade is not None:
+            return await self._ask_followup(state, grade, message)
 
         return await self._ask_next(state)
 
     # -- interview flow ----------------------------------------------------
 
-    async def _grade_answer(self, state: InterviewState, message: str) -> None:
+    async def _grade_answer(
+        self, state: InterviewState, message: str
+    ) -> GradeResult | None:
         question = state.asked[-1]
         grade = await self._grader.grade(
             question,
@@ -97,14 +110,32 @@ class AgenticInterviewEngine:
             state.candidate,
         )
         state.belief.setdefault(str(question.day), []).append(grade.weighted_score)
+        prior = prior_for_day(state.candidate, question.day)
+        update_belief(state.belief_state, question.day, grade.weighted_score, prior)
+        meta = state.meta
+        recent = list(meta.get("recent_scores", []))
+        recent.append(grade.weighted_score)
+        meta["recent_scores"] = recent[-RECENT_SCORES_KEEP:]
+        if grade.overclaim and len(meta.get("overclaims", [])) < MAX_OVERCLAIMS:
+            meta.setdefault("overclaims", []).append(
+                {"day": question.day, "evidence": grade.overclaim_evidence}
+            )
+        meta["last_grade"] = {
+            "day": question.day,
+            "weighted": grade.weighted_score,
+            "overclaim": grade.overclaim,
+            "vague": grade.vague,
+        }
+        return grade
 
     async def _ask_next(self, state: InterviewState) -> EngineTurn:
-        question = self._director.next_question(state)
-        candidate = state.candidate
+        question = self._director.next_question(
+            state, self._analyze(state), state.belief_state, state.candidate
+        )
         question.text = await self._interviewer.render_question(
             question,
             self.curriculum.get(question.day),
-            candidate,
+            state.candidate,
             phase=self._phase_for(len(state.asked) + 1),
             position=len(state.asked) + 1,
             total=self.default_questions,
@@ -116,7 +147,60 @@ class AgenticInterviewEngine:
             TranscriptEntry(role="interviewer", text=question.text, day=question.day)
         )
         state.phase = self._phase_for(len(state.asked))
+        state.meta["consecutive_probes"] = 0
+        state.meta["hints_given"] = 0
+        state.meta["last_decision"] = {
+            "action": "ask_new",
+            "day": question.day,
+            "difficulty": question.difficulty,
+            "type": question.type,
+        }
         return EngineTurn(reply=question.text)
+
+    async def _ask_followup(
+        self, state: InterviewState, grade: GradeResult, message: str
+    ) -> EngineTurn:
+        question = state.asked[-1]
+        target: ProbeTarget = build_probe_target(grade, message, question.day)
+        reply = await self._interviewer.render_followup(
+            target, self.curriculum.get(question.day), state.candidate
+        )
+        meta = state.meta
+        meta["consecutive_probes"] = meta.get("consecutive_probes", 0) + 1
+        meta["followups_total"] = meta.get("followups_total", 0) + 1
+        meta["last_decision"] = {
+            "action": "follow_up",
+            "day": question.day,
+            "kind": target.kind,
+            "target": target.target,
+        }
+        state.transcript.append(
+            TranscriptEntry(
+                role="interviewer",
+                text=reply,
+                day=question.day,
+                meta={"kind": target.kind, "action": "follow_up"},
+            )
+        )
+        return EngineTurn(reply=reply)
+
+    async def _give_hint(self, state: InterviewState) -> EngineTurn:
+        question = state.asked[-1] if state.asked else None
+        difficulty = question.difficulty if question else "L1"
+        reply = await self._interviewer.render_hint(
+            self.curriculum.get(question.day) if question else None, difficulty
+        )
+        state.meta["hints_given"] = state.meta.get("hints_given", 0) + 1
+        state.meta["last_decision"] = {"action": "hint", "day": question.day if question else None}
+        state.transcript.append(
+            TranscriptEntry(
+                role="interviewer",
+                text=reply,
+                day=question.day if question else None,
+                meta={"action": "hint"},
+            )
+        )
+        return EngineTurn(reply=reply)
 
     # -- completion ---------------------------------------------------------
 

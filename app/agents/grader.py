@@ -4,7 +4,8 @@ Scores accuracy / depth / clarity / honesty on 0-5 per PLANNING.md 9.12
 (weighted 0.5/0.3/0.2 + honesty bonus) with overclaim and vagueness flags.
 LLM-graded when online; deterministic heuristics offline. M4 grounds
 accuracy in retrieved curriculum chunks; M2 stays neutral on accuracy
-because there is no retrieval yet.
+because there is no retrieval yet. Also builds the probe target used by
+the Director for follow-up generation (M3).
 """
 
 from __future__ import annotations
@@ -78,6 +79,15 @@ class GradeResult(BaseModel):
             + self.honesty_bonus
         )
         return max(0.0, min(5.0, raw))
+
+
+class ProbeTarget(BaseModel):
+    """Follow-up spec (PLANNING.md 17.4): what to probe and how."""
+
+    kind: str = "clarify"  # clarify | challenge | deepen | verify
+    target: str
+    ref_day: int | None = None
+    ref_quote: str = ""
 
 
 class _GraderOutput(BaseModel):
@@ -241,3 +251,45 @@ def _clarity_score(answer: str) -> float:
 
 def _clamp_score(value: float) -> float:
     return max(0.0, min(5.0, value))
+
+
+def build_probe_target(grade: GradeResult, answer: str, day: int) -> ProbeTarget:
+    """Choose the single best follow-up target (PLANNING.md 17.4): mistakes
+    > overclaims > vagueness > shallow depth. Deterministic — the Interviewer
+    renders the target in the VIVA voice."""
+    quote = _snippet(answer)
+    if grade.mistakes:
+        return ProbeTarget(
+            kind="challenge", target=grade.mistakes[0], ref_day=day, ref_quote=quote
+        )
+    if grade.overclaim and grade.overclaim_evidence:
+        return ProbeTarget(
+            kind="challenge",
+            target="work you claim on this day",
+            ref_day=day,
+            ref_quote=_snippet(grade.overclaim_evidence),
+        )
+    if grade.vague:
+        return ProbeTarget(
+            kind="clarify", target="be more concrete", ref_day=day, ref_quote=quote
+        )
+    term = _extract_term(answer)
+    return ProbeTarget(
+        kind="deepen",
+        target=term or "your approach",
+        ref_day=day,
+        ref_quote=quote,
+    )
+
+
+def _extract_term(answer: str) -> str:
+    """Longest domain-sounding word from the answer as a deepen target."""
+    words = re.findall(r"[A-Za-z][A-Za-z-]{5,}", answer)
+    if not words:
+        return ""
+    return max(words, key=len)
+
+
+def _snippet(text: str, limit: int = 100) -> str:
+    text = " ".join(text.split())
+    return text[:limit] + ("..." if len(text) > limit else "")

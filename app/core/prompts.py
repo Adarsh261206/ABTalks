@@ -33,6 +33,18 @@ END_KEYWORDS = {
     "wrapup",
 }
 
+HINT_KEYWORDS = {
+    "hint",
+    "hints",
+    "/hint",
+    "give me a hint",
+    "give me hint",
+    "give me some hint",
+    "can i get a hint",
+    "could i get a hint",
+    "can you give me a hint",
+}
+
 # Core curriculum days, per PLANNING.md (Phase 6/9). M2 replaces this static
 # sequence with the adaptive Director; the invariants stay.
 DEFAULT_QUESTION_DAYS = [7, 8, 10, 12, 16, 22, 23, 31]
@@ -140,7 +152,23 @@ INTERVIEWER_WELCOME_USER = (
 INTERVIEWER_QUESTION_USER = (
     "Phase: {phase}. Interview question plan position: question {position} of {total}.\n"
     "Candidate profile:\n{profile}\n\nCurriculum day to ask about: Day {day} — {title} "
-    "(type: {day_type}). Objectives: {objectives}\n\n"
+    "(type: {day_type}, difficulty: {difficulty}). Objectives: {objectives}\n\n"
     "Ask exactly one grounded, conversational interview question about this day, "
     "referencing the candidate's own work where the profile supports it."
+)
+
+FOLLOWUP_USER = (
+    "The candidate's previous answer:\n{answer}\n\n"
+    "Follow-up spec from the prober: kind={kind}, target={target}, "
+    "day={ref_day}.\n"
+    "Ask exactly one conversational follow-up that builds on the candidate's own "
+    "words (quote or reference their answer). Probe the target directly. "
+    "One question only, warm professional tone."
+)
+
+HINT_USER = (
+    "The candidate is stuck on Day {day} — {title} (difficulty {difficulty}). "
+    "Objectives: {objectives}\n\n"
+    "Give a short, encouraging hint — one or two sentences that scaffold the "
+    "answer without revealing it. Teaching mode: never shame."
 )

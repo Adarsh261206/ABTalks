@@ -1,4 +1,4 @@
-"""M2 tests: profile analyzer, Director invariants, Grader, Interviewer,
+"""M2/M3 tests: profile analyzer, Director invariants, Grader, Interviewer,
 Reporter, and the full agentic engine loop (mock + LLM paths)."""
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ from app.agents.grader import Grader
 from app.agents.interviewer import Interviewer
 from app.agents.reporter import Reporter
 from app.core.agent_engine import AgenticInterviewEngine
+from app.core.belief import init_belief_state
 from app.core.curriculum import load_curriculum
 from app.core.llm import LLMGateway
 from app.core.profile import analyze_profile, prior_for_day
@@ -160,11 +161,14 @@ def test_director_plan_pulls_probe_days_forward():
 
 def test_director_never_repeats_until_plan_exhausted():
     director = Director(CURRICULUM)
+    candidate = _candidate()
+    analysis = analyze_profile(candidate)
+    belief = init_belief_state(analysis)
     state = InterviewState(session_id="s")
-    state.plan = director.build_plan(analyze_profile(_candidate()))
+    state.plan = director.build_plan(analysis)
     asked = []
     for _ in range(len(state.plan)):
-        q = director.next_question(state)
+        q = director.next_question(state, analysis, belief, candidate)
         state.asked.append(q)
         state.covered_days.append(q.day)
         asked.append(q.day)
@@ -511,7 +515,7 @@ def test_engine_survives_full_provider_outage():
         welcome = await engine.start(state, GERALD)
         assert "Test Candidate" in welcome
         done = None
-        for i in range(9):
+        for i in range(40):
             turn = await engine.process(state, f"Answer {i} in detail.")
             if turn.done:
                 done = turn

@@ -44,6 +44,8 @@ class InterviewState(BaseModel):
     asked: list[Question] = Field(default_factory=list)
     covered_days: list[int] = Field(default_factory=list)
     belief: dict[str, list[float]] = Field(default_factory=dict)
+    belief_state: dict[str, dict[str, float]] = Field(default_factory=dict)
+    meta: dict[str, Any] = Field(default_factory=dict)
     plan: list[dict[str, Any]] = Field(default_factory=list)
     report: Feedback | None = None
     completed_reason: str | None = None
