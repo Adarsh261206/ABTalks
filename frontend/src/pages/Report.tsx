@@ -50,7 +50,10 @@ export function Report() {
   }, [sessionId, navigate]);
 
   const analysis = useMemo(
-    () => (session ? analyzeTranscript(session.transcript) : null),
+    () =>
+      session
+        ? analyzeTranscript(session.transcript, session.completed_days ?? [])
+        : null,
     [session],
   );
 
@@ -89,6 +92,9 @@ export function Report() {
   const verdict = verdictFor(analysis);
   const verdictTone = verdict === "Strong" ? "mint" : verdict === "Developing" ? "amber" : "aurora";
   const coveredSet = new Set(analysis.coveredDays);
+  const completedDays = analysis.completedDays;
+  const completedLabel =
+    completedDays.length > 0 ? String(completedDays.length) : "—";
 
   return (
     <div className="min-h-screen">
@@ -140,7 +146,8 @@ export function Report() {
             <Badge tone="neutral">Engineering assessment</Badge>
             <Badge tone={verdictTone}>{verdict}</Badge>
             <Badge tone="neutral">
-              {session.turn_count} turns · {analysis.coveredDays.length} days covered
+              {session.turn_count} turns · {analysis.coveredDays.length}/{completedLabel} completed
+              days
             </Badge>
           </div>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl print:text-zinc-900">
@@ -158,7 +165,11 @@ export function Report() {
             <div className="mt-2 text-3xl font-semibold text-zinc-50">{analysis.coveragePct}%</div>
             <Progress value={analysis.coveragePct} tone={analysis.coveragePct >= 50 ? "mint" : "aurora"} className="mt-3" />
             <p className="mt-2 text-[11px] text-zinc-600">
-              {analysis.coreCovered.length}/8 core days · {analysis.coveredDays.length}/31 cohort days
+              {analysis.coveredDays.length}/{completedLabel} completed curriculum days interviewed
+            </p>
+            <p className="mt-1 text-[11px] text-zinc-700">
+              The interview only covers days you completed; the rest of your completed
+              curriculum is assessed from your mission record and belief estimates.
             </p>
           </Card>
           <Card className="p-5">

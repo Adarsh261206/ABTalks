@@ -101,7 +101,9 @@ class Reporter:
             f"Profile priors (0-1 mastery estimate from record): "
             f"{_priors_summary(analysis)}\n"
             f"Days flagged in the record for review: "
-            f"{analysis.probe_days or 'none'}\n\n"
+            f"{analysis.probe_days or 'none'}\n"
+            f"Completed curriculum days (the interview pool): "
+            f"{analysis.completed_days or 'none'}\n\n"
             f"Covered days: {state.covered_days}. Questions asked: {len(state.asked)}.\n\n"
             f"{evidence}"
         )
@@ -117,7 +119,10 @@ class Reporter:
         avgs = _grade_summary(state)
         n = len(state.asked)
         covered = list(state.covered_days)
-        early = n < self._default_questions
+        # Ending "early" means running out of turns / keywords, NOT exhausting
+        # the completed-day pool — a full pool run is complete even < 8
+        # questions when the candidate has fewer completed days.
+        early = n < self._default_questions and n < len(state.plan)
 
         strengths: list[str] = []
         for day, avg in sorted(avgs.items(), key=lambda kv: kv[1], reverse=True):
@@ -183,6 +188,18 @@ class Reporter:
                 )
             if len(next_steps) >= 3:
                 break
+        # Completed days the run could not reach are assessed from profile
+        # signals + belief-state estimates, never guessed or skipped over.
+        for day in analysis.completed_days:
+            if day in covered:
+                continue
+            next_steps.append(
+                f"Day {day} — {_title(day, curriculum)}: completed in your record but "
+                f"not assessed this run — mastery estimated from your record "
+                f"(prior {analysis.priors.get(day, 0.0):.2f}); revisit to confirm."
+            )
+            if len(next_steps) >= 3:
+                break
         if not next_steps:
             next_steps = [
                 "Revisit your cohort notes on the days covered in this run.",
@@ -190,7 +207,17 @@ class Reporter:
                 "Rehearse explaining each mission in terms of the decisions you made and what you would improve.",
             ]
 
-        summary = f"Practice interview completed after {n} questions across {len(covered)} curriculum days."
+        completed_count = len(analysis.completed_days)
+        if completed_count:
+            summary = (
+                f"Practice interview completed after {n} questions across "
+                f"{len(covered)} of {completed_count} completed curriculum days."
+            )
+        else:
+            summary = (
+                "Practice interview completed. No completed curriculum days on record "
+                "— complete at least one mission before a technical assessment run."
+            )
         if gaps and "full question plan" not in gaps[0]:
             summary += " A few areas need reinforcement — see the gaps below."
         elif strengths and len(strengths) >= 2:

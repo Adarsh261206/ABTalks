@@ -31,6 +31,7 @@ export interface TranscriptAnalysis {
   coveredDays: number[];
   coreCovered: number[];
   coveragePct: number;
+  completedDays: number[];
   probes: number;
   hints: number;
   followups: number;
@@ -38,7 +39,20 @@ export interface TranscriptAnalysis {
   lastFollowupReason: string | null;
 }
 
-export function analyzeTranscript(transcript: TranscriptEntry[]): TranscriptAnalysis {
+/**
+ * The interview only ever asks about COMPLETED curriculum days (passed
+ * missions). The 8-question cap applies, but a smaller completed-day pool
+ * shortens the run — a full pool run is complete even below 8 questions.
+ */
+export function poolSizeFor(completedDays: number[]): number {
+  return completedDays.length > 0 ? Math.min(8, completedDays.length) : 8;
+}
+
+export function analyzeTranscript(
+  transcript: TranscriptEntry[],
+  completedDays?: number[],
+): TranscriptAnalysis {
+  const completed = completedDays ?? [];
   const questionsAsked = transcript.filter(
     (t) =>
       t.role === "interviewer" &&
@@ -82,12 +96,24 @@ export function analyzeTranscript(transcript: TranscriptEntry[]): TranscriptAnal
     (t) => t.role === "interviewer" && t.meta?.action === "hint",
   );
 
+  // Coverage is measured against the COMPLETED curriculum, not the full
+  // 31-day cohort: the pool never includes uncompleted days.
+  let coveragePct: number;
+  if (completedDays === undefined) {
+    coveragePct = Math.round((coveredDays.length / 31) * 100);
+  } else if (completed.length === 0) {
+    coveragePct = 0; // nothing completed -> nothing to cover
+  } else {
+    coveragePct = Math.min(100, Math.round((coveredDays.length / completed.length) * 100));
+  }
+
   return {
     questionsAsked,
     phase: phaseFor(questionsAsked + 1),
     coveredDays,
     coreCovered,
-    coveragePct: Math.round((coveredDays.length / 31) * 100),
+    coveragePct,
+    completedDays: completed,
     probes: followupEntries.length,
     hints: hintEntries.length,
     followups: followupEntries.length,

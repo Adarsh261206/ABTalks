@@ -186,6 +186,7 @@ def test_session_view_endpoint(app_factory, start_interview, turn):
     assert view["status"] == "active"
     assert view["turn_count"] == 1
     assert view["covered_days"] == [7]
+    assert view["completed_days"] == [7, 12]  # passed missions only (Gerald)
     assert view["transcript"][0]["role"] == "interviewer"
 
 

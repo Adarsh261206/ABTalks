@@ -61,6 +61,7 @@ export interface SessionView {
   status: "active" | "completed";
   turn_count: number;
   covered_days: number[];
+  completed_days?: number[];
   transcript: TranscriptEntry[];
   report?: Feedback | null;
 }

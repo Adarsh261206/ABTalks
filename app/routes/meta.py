@@ -35,11 +35,25 @@ async def session_view(session_id: str, request: Request) -> SessionView:
             if t.get("role") == "interviewer" and t.get("day") is not None
         }
     )
+    completed_days = _completed_days(row)
     return SessionView(
         session_id=row.session_id,
         status=row.status,
         turn_count=row.turn_count,
         covered_days=covered_days,
+        completed_days=completed_days,
         transcript=transcript,
         report=json.loads(row.report_json) if row.report_json else None,
+    )
+
+
+def _completed_days(row) -> list[int]:
+    """Completed curriculum days (passed missions) from the stored candidate;
+    used as the interview-pool denominator in coverage reporting."""
+    try:
+        missions = json.loads(row.candidate_json or "{}").get("missions") or []
+    except (json.JSONDecodeError, AttributeError):
+        return []
+    return sorted(
+        m.get("day") for m in missions if isinstance(m, dict) and m.get("passed")
     )

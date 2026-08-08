@@ -6,6 +6,9 @@ per turn: grade the last answer -> update the belief state -> the Director
 decides (new question / follow-up / hint) -> the Interviewer renders.
 Every agent degrades to a deterministic fallback offline, and the hard
 minimums (>= 8 questions, >= 4 days, valid feedback) hold in both modes.
+Interview rules (M3): questions come ONLY from the candidate's completed
+curriculum days — the run ends when that pool is exhausted, which is a
+complete run even below 8 questions.
 """
 
 from __future__ import annotations
@@ -151,13 +154,19 @@ class AgenticInterviewEngine:
         question = self._director.next_question(
             state, self._analyze(state), state.belief_state, state.candidate
         )
+        if question is None:
+            # The completed-day pool is exhausted: the interview is complete.
+            # Fewer than `default_questions` is expected when the candidate
+            # has fewer completed curriculum days — never fall back to
+            # asking about uncompleted days.
+            return await self._wrap_up(state, reason="plan_exhausted")
         question.text = await self._interviewer.render_question(
             question,
             self.curriculum.get(question.day),
             state.candidate,
             phase=self._phase_for(len(state.asked) + 1),
             position=len(state.asked) + 1,
-            total=self.default_questions,
+            total=self._plan_size(state),
         )
         state.asked.append(question)
         if question.day not in state.covered_days:
@@ -247,6 +256,11 @@ class AgenticInterviewEngine:
         return EngineTurn(reply=COMPLETION_REPLY, done=True, feedback=feedback)
 
     # -- helpers -------------------------------------------------------------
+
+    def _plan_size(self, state: InterviewState) -> int:
+        """Questions this run will actually ask: the completed-day pool,
+        capped at the default question count (never more than the default)."""
+        return max(min(len(state.plan), self.default_questions), 1)
 
     def _analyze(self, state: InterviewState) -> ProfileAnalysis:
         candidate = state.candidate

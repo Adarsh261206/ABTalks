@@ -63,5 +63,6 @@ class SessionView(BaseModel):
     status: str
     turn_count: int
     covered_days: list[int]
+    completed_days: list[int] = Field(default_factory=list)
     transcript: list[dict[str, Any]]
     report: Feedback | None = None

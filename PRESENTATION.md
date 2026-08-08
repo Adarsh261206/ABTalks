@@ -29,7 +29,7 @@
 > **What we built.** VIVA is a full-stack product:
 >
 > - **Landing** — a judge-facing start screen with demo personas: a struggling IT support specialist, a strong senior data engineer, and a legacy systems engineer who passed every mission. Plus a browser over all 20 cohort candidates with their mission records.
-> - **The Interview** — a live, adaptive conversation. The agent starts from your record, picks the next uncovered day, and adjusts difficulty from your answers. Weak answer? Grounded follow-up naming the exact concept you missed. Stuck? A hint. Vague claim? An overclaim check. The panel on the right shows live progress: question count, phase, and an 8-day core coverage grid.
+> - **The Interview** — a live, adaptive conversation. The agent starts from your record, picks the next uncovered **completed** day, and adjusts difficulty from your answers. Weak answer? Grounded follow-up naming the exact concept you missed. Stuck? A hint. Vague claim? An overclaim check. The panel on the right shows live progress: question count, phase, and a coverage grid over your completed curriculum days.
 > - **The Report** — an Engineering Assessment, not a chatbot summary. Verdict, coverage percentage, strengths, gaps, and next steps — every item linked to a curriculum day and backed by transcript evidence. Copy a shareable link or print it.
 >
 > **How it works.** A director agent decides the next action: new question, follow-up, or hint. A grader runs retrieval + concept detection against the curriculum — every grade is evidence-grounded, with confidence scores, not vibes. A belief state tracks mastery per day and adapts the rest of the interview. Hints and follow-ups fire on deterministic signals, so the demo never depends on an external LLM — the default runs a deterministic provider that never dies.
@@ -94,7 +94,7 @@
 **1:30–2:30 — Follow-up + sidebar**
 - Type: `we tried something similar at work but I forget how it works`
 - The follow-up names missing concepts. Say: "Notice it didn't move on — it probed the exact gap."
-- Point at the right panel: "Question count, phase rail, core-day coverage grid."
+- Point at the right panel: "Question count, phase rail, coverage grid over your completed days."
 
 **2:30–3:00 — Commands**
 - Type: `/hint` then `ok i think it means storing text as numbers` — say: "A real answer. The agent grades it and moves on."
@@ -144,8 +144,8 @@ Both by design: hints and follow-ups train during the interview; the report asse
 **Q5. What would a paid version look like?**
 Per-cohort curriculum onboarding, analytics for mentors, anti-cheat telemetry, and org-level report archives.
 
-**Q6. Why 8 questions / 8 core days?**
-Default tuned for a 5-minute demo and judge attention span; configurable via `VIVA_DEFAULT_QUESTIONS`.
+**Q6. Why 8 questions / a completed-day pool?**
+The interview only ever asks about curriculum days you **completed** (passed missions) — never uncompleted, failed, skipped, or not-started days, which surface as record-based diagnostics in the report instead. The run caps at 8 questions by default (configurable via `VIVA_DEFAULT_QUESTIONS`); fewer completed days means a shorter but still complete run.
 
 **Q7. How do you handle a candidate gaming the system?**
 Overclaim detection (claiming coverage the record doesn't support) and vague-answer detection; belief state resists one-off good answers — it's a running per-day estimate.

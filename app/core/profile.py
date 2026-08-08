@@ -44,10 +44,13 @@ _MAX_PRIOR = 0.95
 
 class ProfileAnalysis(BaseModel):
     """Output of `analyze_profile`: priors for every curriculum day,
-    days to probe (failed/skipped/high-attempt), and a coarse profile type."""
+    days to probe (failed/skipped/high-attempt), the completed-curriculum
+    interview pool, and a coarse profile type."""
 
     priors: dict[int, float] = Field(default_factory=dict)
     probe_days: list[int] = Field(default_factory=list)
+    completed_days: list[int] = Field(default_factory=list)
+    skipped_days: list[int] = Field(default_factory=list)
     profile_type: str = "average"
 
 
@@ -67,10 +70,16 @@ def analyze_profile(candidate: CandidateProfile) -> ProfileAnalysis:
         for day, mission in missions.items()
         if _is_probe_day(mission)
     )
+    # Interview pool rules (M3): only PASSED missions are interviewable;
+    # skipped and failed days are diagnostic-only (report flags), never asked.
+    completed_days = sorted(day for day, mission in missions.items() if mission.passed)
+    skipped_days = sorted(day for day, mission in missions.items() if mission.skipped)
 
     return ProfileAnalysis(
         priors=priors,
         probe_days=probe_days,
+        completed_days=completed_days,
+        skipped_days=skipped_days,
         profile_type=_classify(missions, first_try_ratio, candidate),
     )
 

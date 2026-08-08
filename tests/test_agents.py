@@ -54,6 +54,17 @@ GERALD = _candidate(
     signals=Signals(commitDays=22, missionsCompleted=23, missionsFirstTry=1),
 )
 
+# 10 completed curriculum days: the interview pool can support a full
+# 8-question run with room to spare (as opposed to GERALD's 2-day pool).
+MANY_DAYS = _candidate(
+    missions=[
+        {"day": d, "title": f"D{d}", "passed": True, "attempts": 1}
+        for d in (7, 8, 10, 12, 16, 22, 23, 28, 29, 31)
+    ],
+    role="Software Engineer",
+    years=3,
+)
+
 
 class ScriptedStructuredProvider:
     """LLM provider returning scripted chat text and schema-valid JSON."""
@@ -141,38 +152,73 @@ def test_profile_classification():
 
 # ------------------------------------------------------------------ director
 
-def test_director_plan_starts_with_warmup_day_and_no_duplicates():
+def test_director_plan_pool_is_completed_days_only():
     director = Director(CURRICULUM)
-    plan = director.build_plan(analyze_profile(_candidate()))
+    analysis = analyze_profile(MANY_DAYS)
+    plan = director.build_plan(analysis)
     days = [p["day"] for p in plan]
-    assert days[0] == 7
+    assert days[0] == 31  # warm-up = highest-prior completed day (ties -> most recent)
     assert len(days) == len(set(days))
     assert len(days) >= 8
-    assert len(set(days[:8]) & {7, 8, 10, 12, 16, 22, 23, 31}) >= 4
+    assert set(days) <= set(analysis.completed_days)
 
 
-def test_director_plan_pulls_probe_days_forward():
+def test_director_plan_excludes_uncompleted_and_skipped_days():
     director = Director(CURRICULUM)
-    plan = director.build_plan(analyze_profile(GERALD))
-    days = [p["day"] for p in plan]
-    assert days.index(8) < days.index(12)
-    assert days.index(22) < days.index(16)
+    candidate = _candidate(
+        missions=[
+            {"day": 7, "passed": True, "attempts": 5},
+            {"day": 8, "passed": False, "attempts": 4},
+            {"day": 10, "passed": False, "attempts": 3},
+            {"day": 12, "passed": True, "attempts": 1},
+            {"day": 22, "passed": False, "attempts": 2},
+            {"day": 29, "skipped": True, "attempts": 0, "passed": False},
+        ],
+        role="IT Support Specialist",
+        years=20,
+    )
+    analysis = analyze_profile(candidate)
+    days = [p["day"] for p in director.build_plan(analysis)]
+    assert set(days) == {7, 12}
+    assert days[0] == 12  # warm-up = highest-prior completed day
+    assert 29 not in days  # skipped: diagnostic-only, never asked
+
+
+def test_director_plan_orders_struggle_days_before_recent():
+    director = Director(CURRICULUM)
+    candidate = _candidate(
+        missions=[
+            {"day": 7, "passed": True, "attempts": 5},   # failed-then-passed, low mastery
+            {"day": 8, "passed": True, "attempts": 1},
+            {"day": 12, "passed": True, "attempts": 1},
+        ],
+        role="Software Engineer",
+        years=20,
+    )
+    days = [p["day"] for p in director.build_plan(analyze_profile(candidate))]
+    assert days[0] == 12  # warm-up: highest prior (tie -> most recent)
+    assert days[1] == 7  # struggle day before the remaining recent day
+    assert days[2] == 8
 
 
 def test_director_never_repeats_until_plan_exhausted():
     director = Director(CURRICULUM)
-    candidate = _candidate()
-    analysis = analyze_profile(candidate)
+    analysis = analyze_profile(MANY_DAYS)
     belief = init_belief_state(analysis)
     state = InterviewState(session_id="s")
     state.plan = director.build_plan(analysis)
     asked = []
-    for _ in range(len(state.plan)):
-        q = director.next_question(state, analysis, belief, candidate)
+    while True:
+        q = director.next_question(state, analysis, belief, MANY_DAYS)
+        if q is None:
+            break
         state.asked.append(q)
         state.covered_days.append(q.day)
         asked.append(q.day)
-    assert len(asked) == len(set(asked))
+    assert len(asked) == len(set(asked)) == len(state.plan)
+    # pool exhausted -> None, and it stays exhausted (no fallback to
+    # uncompleted days)
+    assert director.next_question(state, analysis, belief, MANY_DAYS) is None
 
 
 # ------------------------------------------------------------------- grader
@@ -394,7 +440,7 @@ def test_mock_engine_full_interview_satisfies_minimums():
     async def _body():
         engine = AgenticInterviewEngine(curriculum=CURRICULUM)
         state = _new_state()
-        welcome = await engine.start(state, GERALD)
+        welcome = await engine.start(state, MANY_DAYS)
         assert "Test Candidate" in welcome
         done = None
         for i in range(9):
@@ -412,13 +458,47 @@ def test_mock_engine_full_interview_satisfies_minimums():
     _run(_body())
 
 
-def test_mock_engine_first_question_is_day_7():
+def test_mock_engine_short_pool_completes_after_pool_exhausted():
+    async def _body():
+        engine = AgenticInterviewEngine(curriculum=CURRICULUM)
+        state = _new_state()
+        await engine.start(state, GERALD)
+        done = None
+        for i in range(5):
+            turn = await engine.process(state, f"Answer {i} with enough detail to show reasoning about architecture choices.")
+            if turn.done:
+                done = turn
+                break
+        assert done is not None
+        assert len(state.asked) == 2  # GERALD's pool = {7, 12}, then wrap-up
+        assert set(state.covered_days) == {7, 12}
+        assert "2 of 2 completed curriculum days" in done.feedback.summary
+        assert not any("full question plan" in g for g in done.feedback.gaps)
+
+    _run(_body())
+
+
+def test_mock_engine_no_completed_days_wraps_immediately():
+    async def _body():
+        engine = AgenticInterviewEngine(curriculum=CURRICULUM)
+        state = _new_state()
+        await engine.start(state, _candidate(
+            [{"day": 7, "passed": False, "attempts": 5}, {"day": 8, "skipped": True, "attempts": 0, "passed": False}]
+        ))
+        turn = await engine.process(state, "I have no completed missions.")
+        assert turn.done is True
+        assert "No completed curriculum days" in turn.feedback.summary
+
+    _run(_body())
+
+
+def test_mock_engine_first_question_is_warmup_completed_day():
     async def _body():
         engine = AgenticInterviewEngine(curriculum=CURRICULUM)
         state = _new_state()
         await engine.start(state, GERALD)
         turn = await engine.process(state, "I built a RAG pipeline.")
-        assert "Day 7" in turn.reply
+        assert "Day 12" in turn.reply  # warm-up = highest-prior completed day
 
     _run(_body())
 
@@ -430,8 +510,8 @@ def test_mock_engine_records_grades_in_belief():
         await engine.start(state, GERALD)
         await engine.process(state, "A terse yes.")
         await engine.process(state, "Answer two with more detail.")
-        assert "7" in state.belief
-        assert len(state.belief["7"]) == 1
+        assert "12" in state.belief
+        assert len(state.belief["12"]) == 1
 
     _run(_body())
 
@@ -467,6 +547,7 @@ def test_engine_llm_path_uses_provider():
         provider = ScriptedStructuredProvider(
             chat_replies=[
                 "Welcome, Test Candidate.",
+                "Let's talk about Day 31.",
                 "Let's talk about Day 7.",
                 "Let's talk about Day 8.",
                 "Let's talk about Day 10.",
@@ -474,7 +555,6 @@ def test_engine_llm_path_uses_provider():
                 "Let's talk about Day 16.",
                 "Let's talk about Day 22.",
                 "Let's talk about Day 23.",
-                "Let's talk about Day 31.",
             ],
             structured=[
                 {"accuracy": 4.0, "depth": 4.0, "clarity": 4.0, "honesty_bonus": 0.0,
@@ -491,7 +571,7 @@ def test_engine_llm_path_uses_provider():
         )
         assert engine._gateway.uses_mock_primary is False
         state = _new_state()
-        welcome = await engine.start(state, GERALD)
+        welcome = await engine.start(state, MANY_DAYS)
         assert welcome == "Welcome, Test Candidate."
         done = None
         for i in range(9):
@@ -512,7 +592,7 @@ def test_engine_survives_full_provider_outage():
         gateway = LLMGateway(primary=FailingProvider(), sleep=_no_sleep)
         engine = AgenticInterviewEngine(curriculum=CURRICULUM, gateway=gateway)
         state = _new_state()
-        welcome = await engine.start(state, GERALD)
+        welcome = await engine.start(state, MANY_DAYS)
         assert "Test Candidate" in welcome
         done = None
         for i in range(40):

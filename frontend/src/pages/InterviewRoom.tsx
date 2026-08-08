@@ -8,8 +8,15 @@ import { Logo } from "../components/ui/Logo";
 import { Progress } from "../components/ui/Progress";
 import { TypingDots } from "../components/ui/TypingDots";
 import { api, loadLocalSession, newSessionId, saveLocalSession } from "../lib/api";
-import { analyzeTranscript, CORE_DAYS } from "../lib/interview";
+import { analyzeTranscript, poolSizeFor } from "../lib/interview";
 import { ApiError, type CandidateProfile, type TranscriptEntry } from "../lib/types";
+
+function completedDaysFor(candidate: CandidateProfile): number[] {
+  return (candidate.missions ?? [])
+    .filter((m) => m.passed)
+    .map((m) => m.day)
+    .sort((a, b) => a - b);
+}
 
 function loadPendingCandidate(): CandidateProfile | null {
   try {
@@ -33,6 +40,7 @@ export function InterviewRoom() {
   const [candidate, setCandidate] = useState<CandidateProfile | null>(() =>
     loadPendingCandidate(),
   );
+  const [completedDays, setCompletedDays] = useState<number[]>([]);
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [sessionId, setSessionId] = useState<string>(() => loadLocalSession()?.sessionId ?? "");
   const [busy, setBusy] = useState(false);
@@ -45,7 +53,10 @@ export function InterviewRoom() {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const autoStartedRef = useRef(false);
 
-  const analysis = useMemo(() => analyzeTranscript(transcript), [transcript]);
+  const analysis = useMemo(
+    () => analyzeTranscript(transcript, completedDays),
+    [transcript, completedDays],
+  );
 
   // resume an in-progress session on mount — but never when a fresh candidate
   // is pending: auto-start below owns that mount (avoids resuming a stale
@@ -62,6 +73,7 @@ export function InterviewRoom() {
         if (cancelled) return;
         setSessionId(view.session_id);
         setTranscript(view.transcript);
+        setCompletedDays(view.completed_days ?? []);
         setCandidate({
           member: {
             id: existing.candidateId,
@@ -119,6 +131,7 @@ export function InterviewRoom() {
           done: false,
           startedAt: Date.now(),
         });
+        setCompletedDays(completedDaysFor(candidateProfile));
         setTranscript([{ role: "interviewer", text: response.reply }]);
       } catch (err) {
         setError(formatError(err, "Could not start the interview."));
@@ -214,8 +227,10 @@ export function InterviewRoom() {
     );
   }
 
-  const questionIndex = Math.min(analysis.questionsAsked + 1, 8);
-  const coreCoveredSet = new Set(analysis.coreCovered);
+  const poolSize = poolSizeFor(completedDays);
+  const questionIndex = Math.min(analysis.questionsAsked + 1, poolSize);
+  const coveredSet = new Set(analysis.coveredDays);
+  const poolDays = [...completedDays].sort((a, b) => a - b);
 
   return (
     <div className="flex h-screen flex-col">
@@ -312,10 +327,10 @@ export function InterviewRoom() {
             <div className="flex items-baseline justify-between">
               <span className="text-[11px] font-medium tracking-wide text-zinc-500">Question</span>
               <span className="text-xs text-zinc-400">
-                {questionIndex} / 8
+                {questionIndex} / {poolSize}
               </span>
             </div>
-            <Progress value={(questionIndex / 8) * 100} className="mt-2" />
+            <Progress value={(questionIndex / poolSize) * 100} className="mt-2" />
             <div className="mt-5">
               <span className="text-[11px] font-medium tracking-wide text-zinc-500">Phase</span>
               <div className="mt-2 space-y-2">
@@ -355,17 +370,19 @@ export function InterviewRoom() {
               <span className="text-[11px] font-medium tracking-wide text-zinc-500">
                 Curriculum coverage
               </span>
-              <span className="text-xs text-zinc-400">{analysis.coreCovered.length}/8 core</span>
+              <span className="text-xs text-zinc-400">
+                {analysis.coveredDays.length}/{poolDays.length} completed
+              </span>
             </div>
             <div className="mt-3 grid grid-cols-4 gap-2">
-              {CORE_DAYS.map((day) => (
+              {poolDays.map((day) => (
                 <div
                   key={day}
-                  title={coreCoveredSet.has(day) ? `Day ${day} covered` : `Day ${day} pending`}
+                  title={coveredSet.has(day) ? `Day ${day} covered` : `Day ${day} pending`}
                   className={`flex h-10 items-center justify-center rounded-lg border text-xs font-medium transition-colors ${
-                    coreCoveredSet.has(day)
+                    coveredSet.has(day)
                       ? "border-mint-400/25 bg-mint-400/10 text-mint-300"
-                      : day === nextQuestionDay(analysis)
+                      : day === nextQuestionDay(analysis, poolDays)
                         ? "border-aurora-500/40 bg-aurora-500/10 text-aurora-300"
                         : "border-white/8 bg-white/2 text-zinc-600"
                   }`}
@@ -375,8 +392,8 @@ export function InterviewRoom() {
               ))}
             </div>
             <p className="mt-3 text-[11px] leading-relaxed text-zinc-600">
-              {analysis.coreCovered.length}/8 core curriculum days covered ·{" "}
-              {analysis.coveragePct}% of the cohort
+              {analysis.coveredDays.length}/{poolDays.length} completed curriculum days
+              covered · {analysis.coveragePct}% of your completed pool
             </p>
           </Card>
 
@@ -412,11 +429,11 @@ export function InterviewRoom() {
           )}
           <div className="mb-2 flex flex-wrap items-center gap-2 lg:hidden">
             <Badge tone="neutral">
-              Question {questionIndex} / 8
+              Question {questionIndex} / {poolSize}
             </Badge>
             <Badge tone="aurora">{analysis.phase}</Badge>
             <Badge tone="mint">
-              {analysis.coreCovered.length}/8 core days
+              {analysis.coveredDays.length}/{poolDays.length} completed days
             </Badge>
           </div>
           <div className="flex items-end gap-2">
@@ -465,8 +482,8 @@ export function InterviewRoom() {
   );
 }
 
-function nextQuestionDay(analysis: { coreCovered: number[] }): number {
-  return CORE_DAYS.find((day) => !analysis.coreCovered.includes(day)) ?? CORE_DAYS[0];
+function nextQuestionDay(analysis: { coveredDays: number[] }, poolDays: number[]): number {
+  return poolDays.find((day) => !analysis.coveredDays.includes(day)) ?? poolDays[0];
 }
 
 function formatError(err: unknown, fallback: string): string {

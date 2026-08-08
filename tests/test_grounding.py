@@ -339,11 +339,11 @@ def test_engine_records_reasoning_metadata_per_answer():
             "concepts_detected", "concepts_missing", "followup_reason", "mastery_delta",
         }
         assert required <= set(entry)
-        assert entry["curriculum_day"] == 7
+        assert entry["curriculum_day"] == 12  # GERALD's warm-up = highest-prior completed day
         assert entry["retrieval_confidence"] == 0.4
         assert entry["mastery_delta"] is not None
         assert entry["followup_reason"]  # follow-up fired on the terse answer
-        assert state.meta["day_evidence"]["7"]["missing"]
+        assert state.meta["day_evidence"]["12"]["missing"]
         assert state.meta["last_grade"]["grading_confidence"] >= 0.0
 
     _run(_body())
@@ -367,7 +367,10 @@ def test_reporter_fallback_cites_retrieved_evidence():
     async def _body():
         engine = AgenticInterviewEngine(curriculum=CURRICULUM)
         state = _new_state()
-        await engine.start(state, GERALD)
+        await engine.start(state, _candidate(
+            [{"day": d, "title": f"D{d}", "passed": True, "attempts": 1}
+             for d in (7, 8, 10, 12, 16, 22, 23, 28, 29, 31)]
+        ))
         done = None
         for i in range(9):
             turn = await engine.process(

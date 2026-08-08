@@ -3,6 +3,7 @@ import {
   analyzeTranscript,
   extractDayNumbers,
   phaseFor,
+  poolSizeFor,
   verdictFor,
 } from "./interview";
 import type { TranscriptEntry } from "./types";
@@ -66,6 +67,29 @@ describe("analyzeTranscript", () => {
     expect(a.coveredDays).toEqual([]);
     expect(a.coveragePct).toBe(0);
     expect(a.lastFollowupReason).toBeNull();
+  });
+
+  it("measures coverage against completed days, not the 31-day cohort", () => {
+    const a = analyzeTranscript(transcript, [7, 8, 10, 12]);
+    expect(a.coveragePct).toBe(50);
+    expect(a.coveredDays).toEqual([7, 8]);
+    const b = analyzeTranscript(transcript, [7, 8]);
+    expect(b.coveragePct).toBe(100);
+  });
+
+  it("clamps coverage to 100% and handles an empty completed pool", () => {
+    expect(analyzeTranscript(transcript, [7, 8]).coveragePct).toBe(100);
+    const a = analyzeTranscript(transcript, []);
+    expect(a.coveragePct).toBe(0);
+    expect(a.completedDays).toEqual([]);
+  });
+});
+
+describe("poolSizeFor", () => {
+  it("caps the pool at 8 questions but never exceeds completed days", () => {
+    expect(poolSizeFor([])).toBe(8);
+    expect(poolSizeFor([7, 12])).toBe(2);
+    expect(poolSizeFor([7, 8, 10, 12, 16, 22, 23, 28, 29, 31])).toBe(8);
   });
 });
 
