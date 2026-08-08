@@ -153,8 +153,9 @@ class Interviewer:
         day_label = f"Day {day.day}" if day else "this topic"
         objective = day.objectives[0].rstrip(".") if day and day.objectives else ""
         if objective:
+            first = objective[0].lower()
             return (
-                f"Here's a starting point for {day_label}: think about {objective.lower()}. "
+                f"Here's a starting point for {day_label}: {first}{objective[1:]}. "
                 "Take your time — I'll wait."
             )
         return (
