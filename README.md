@@ -85,31 +85,43 @@ cd frontend && npm run build           # tsc + vite build
 
 ## Demo script (3 personas)
 
-The landing page offers three personas plus all 20 cohort candidates:
+The landing page offers three personas plus all 20 cohort candidates. Run this
+exact sequence for the judging walkthrough:
 
-1. **CAND-010 (stretch / struggling)** — short answers, hedge, say "I don't remember".
-   Watch VIVA probe the exact missing concept (the follow-up shows *why* it probed),
-   then give a hint. End early with **End** → "Confirm end?".
+1. **CAND-010 (stretch / struggling)** — "Interview" → answer briefly, hedge, say
+   "I don't remember". **Watch for:** a follow-up that names the exact concept you
+   missed (the chip shows *why* VIVA probed), then a hint. End early with
+   **End** → **Confirm end?**.
 2. **CAND-001 (strong senior)** — answer confidently with tool names from the
-   curriculum. Watch the coverage grid fill and the verdict land on **Strong**.
-3. **CAND-019 (non-technical)** — vague, non-technical answers. Watch the belief
-   state keep the interview adaptive instead of collapsing.
+   curriculum (e.g. "I chunked the documents and used cosine similarity on
+   vector embeddings"). **Watch for:** the coverage grid filling, no grounded
+   probes, verdict landing on **Strong**.
+3. **CAND-019 (non-technical)** — vague, non-technical answers. **Watch for:**
+   the interview staying adaptive instead of collapsing, and the report calling
+   out retrieval gaps with concrete days.
 
-Keyboard: **/** focuses the answer box, **Enter** sends, **Shift+Enter** newline,
-commands `/hint` and `/end` work in the chat. Every report is shareable via its URL
-and printable (Print → PDF).
+Every report is shareable via its URL (**Copy link**) and printable
+(**Print** → PDF). Keyboard: **/** focuses the answer box, **Enter** sends,
+**Shift+Enter** newline, `/hint` and `/end` work in the chat.
 
-## Real LLM verification (optional but recommended)
+## Real LLM verification checklist (pre-submission)
 
-Out of the box VIVA runs on the deterministic mock provider — reliable for demos,
-identical contracts. To verify the real-LLM path before submission:
+Out of the box VIVA runs on the deterministic mock provider — reliable for
+demos, identical contracts. Verify the real-LLM path at least once before
+submission:
 
-1. Copy `.env.example` to `.env` and set `VIVA_LLM_PROVIDER=openai`,
-   `VIVA_LLM_MODEL` and `VIVA_OPENAI_API_KEY`.
-2. Run one full 8-question interview (see demo script) with a real candidate.
-3. Verify: follow-up probes still carry `followup_reason` + `missing_concepts`;
-   the report cites concrete days; no contract fields change shape.
-4. If the key is unavailable at demo time, VIVA falls back to the mock provider —
+1. `cp .env.example .env` and set `VIVA_LLM_PROVIDER=openai`, `VIVA_LLM_MODEL`
+   (e.g. `gpt-4o-mini`), `VIVA_OPENAI_API_KEY`.
+2. Restart `uvicorn app.main:app`.
+3. Run one full 8-question interview (demo script above) and check every box:
+
+   - [ ] Follow-up probes still carry `followup_reason` + `missing_concepts`
+   - [ ] Hints arrive on a wrong/stuck answer, not randomly
+   - [ ] The report cites concrete cohort days in strengths/gaps/next
+   - [ ] Verdict badge matches the metrics (coverage % + probes) — never contradicts
+   - [ ] Response shape identical to the mock run (contract is stable)
+
+4. If no key is available at demo time, VIVA falls back to the mock provider —
    the demo never dies.
 
 ## AI-Usage Log
