@@ -2989,3 +2989,64 @@ Each entry follows the same journal structure:
 **Git Push Status:** n/a.
 
 **Outcome:** Judge simulation complete; 6 issues found (1 high, 1 medium, 1 medium-low, 3 low). No fixes applied this phase, per the prompt's DO NOT FIX YET rule.
+
+---
+
+## M8 Phase 3 — Bug Bash
+
+### 2026-08-08 — Prompt (exact, Phase 3 section of the Final Execution prompt)
+
+> PHASE 3 — BUG BASH
+>
+> Fix ONLY the issues discovered during judge simulation.
+>
+> Rules:
+>
+> No new features.
+>
+> No redesign.
+>
+> No architecture changes.
+>
+> Only bug fixes.
+>
+> After every fix:
+>
+> Run:
+>
+> Backend Tests
+>
+> Frontend Tests
+>
+> Typecheck
+>
+> Production Build
+>
+> All must pass.
+>
+> Commit after every fix.
+
+**AI Response Summary (Phase 3):** Fixed the 5 actionable issues found in the Phase 2 judge simulation, one commit per fix, full verification (backend pytest, frontend vitest, typecheck, production build) green after every fix.
+
+**Fixes (commit per fix):**
+1. `40e0783` — **Report shared-link candidate name**: `candidateById` now matches case-insensitively, so `viva-cand-010-…` session ids resolve the candidate name on fresh browsers (Copy-Link flow).
+2. `826cac7` — **Hint grammar**: interviewer hint template no longer says "think about understand…" — renders "Here's a starting point for Day 7: understand how text is converted into vector embeddings. Take your time — I'll wait." Verified live against the deployed server after restart.
+3. `68d4f79` — **Composer maxLength=4000** mirroring `settings.max_message_chars`, eliminating the confusing 413 "Could not reach the interviewer." path.
+4. `340523d` — **Clipboard guard**: `navigator.clipboard` failure falls back to a hidden-textarea `document.execCommand("copy")` for non-secure contexts.
+5. `063a084` — **State-aware composer placeholder**: "Say hello to begin…" → "Answer the question…" → "Interview complete — preparing your report…".
+
+Deferred to Future Improvements (not bugs): stale-tab 409 after completing in another tab.
+
+**Files Modified:** `frontend/src/lib/data.ts`, `app/agents/interviewer.py` (template string only), `frontend/src/pages/InterviewRoom.tsx`, `frontend/src/pages/Report.tsx`, `PROMPTS.md` (this entry).
+
+**Commands Executed:** `npm run typecheck`, `npm run test` (9/9), `npm run build` (✓ ~480-540ms), `./.venv/bin/python -m pytest -q` (exit 0), `git commit` + `git push origin main` after every fix; server restart + live hint verification.
+
+**Tests Run:** backend 89/89 (exit 0); frontend 9/9 vitest; typecheck clean; build clean — after every commit.
+
+**Build Result:** Production build clean after each fix (~480–540ms, bundle unchanged in size).
+
+**Git Commit Hash:** `40e0783`, `826cac7`, `68d4f79`, `340523d`, `063a084`.
+
+**Git Push Status:** All 5 commits pushed to `origin/main`.
+
+**Outcome:** All judge-simulation bugs eliminated. Every fix is a strict bug fix — no features, no redesign, no architecture change.
