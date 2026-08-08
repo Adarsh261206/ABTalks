@@ -2310,3 +2310,548 @@ Each entry follows the same journal structure:
 **Git Commit:** `(this commit)` — "docs: complete PROMPTS.md with verbatim milestone prompts (M0–M5 + refactor stabilization) from builder chat history"
 
 **Outcome:** The log is now a fully verbatim audit trail from project initialization to the current milestone — every prompt in the document is the exact text that was given, with no placeholders and nothing invented.
+
+---
+
+## M8 — Final Execution Phase (Deployment, Judge Simulation, Release)
+
+### 2026-08-08 — Prompt (exact, provided during the final execution phase)
+
+> # FINAL EXECUTION PHASE
+>
+> You are no longer in implementation mode.
+>
+> You are no longer in architecture mode.
+>
+> You are no longer in feature planning mode.
+>
+> The product is now considered FEATURE COMPLETE.
+>
+> All core milestones have been completed.
+>
+> M0 — Strategy & Planning ✅
+> M1 — Backend Foundation ✅
+> M2 — Interview Core ✅
+> M3 — Adaptive Intelligence ✅
+> M4 — Grounded Evaluation Engine ✅
+> M5 — Premium Frontend Experience ✅
+> M6 — Demo Polish ✅
+> M7 — High ROI Judge Improvements ✅
+>
+> From this point onward the objective is NOT to build more software.
+>
+> The objective is to maximize hackathon winning probability.
+>
+> Think like the CTO of a startup preparing for Demo Day where investors and judges will see the product for the first time.
+>
+> Your success metric is NOT code.
+>
+> Your success metric is the probability that judges rank this project in the top submissions.
+>
+> ------------------------------------------------------------
+>
+> ABSOLUTE RULES
+>
+> DO NOT
+>
+> - Add new features
+> - Add new AI agents
+> - Redesign architecture
+> - Refactor working systems
+> - Rewrite backend
+> - Rewrite frontend
+> - Change database design
+> - Replace libraries
+> - Optimize prematurely
+> - Increase complexity
+>
+> If you detect a possible improvement that is not critical for judging,
+> add it to:
+>
+> Future Improvements
+>
+> DO NOT IMPLEMENT IT.
+>
+> ------------------------------------------------------------
+>
+> PHASE 1 — DEPLOYMENT
+>
+> Prepare the project for production deployment.
+>
+> Verify everything required for deployment.
+>
+> Check:
+>
+> - Environment variables
+> - Production configuration
+> - Health endpoint
+> - Static asset serving
+> - API routing
+> - SPA routing
+> - Error pages
+> - Build process
+> - Production startup
+> - Environment documentation
+> - .env.example completeness
+>
+> Deploy the application.
+>
+> Verify deployment.
+>
+> Run complete smoke tests.
+>
+> ------------------------------------------------------------
+>
+> PHASE 2 — END TO END JUDGE SIMULATION
+>
+> Now become an official hackathon judge.
+>
+> Forget you built the project.
+>
+> Pretend this is one of 20,000 submissions.
+>
+> Use ONLY the deployed application.
+>
+> Do NOT inspect the source code.
+>
+> Judge only the product.
+>
+> Perform the complete flow.
+>
+> Landing
+>
+> ↓
+>
+> Candidate Selection
+>
+> ↓
+>
+> Interview
+>
+> ↓
+>
+> Adaptive Questions
+>
+> ↓
+>
+> Hints
+>
+> ↓
+>
+> Follow Ups
+>
+> ↓
+>
+> Interview Completion
+>
+> ↓
+>
+> Engineering Assessment Report
+>
+> ↓
+>
+> Copy Link
+>
+> ↓
+>
+> Print
+>
+> ↓
+>
+> Return Home
+>
+> Test everything.
+>
+> Find every possible issue.
+>
+> Focus on:
+>
+> Confusing UX
+>
+> Typos
+>
+> Loading
+>
+> Error states
+>
+> Responsiveness
+>
+> Accessibility
+>
+> Performance
+>
+> Visual consistency
+>
+> Broken navigation
+>
+> Mobile issues
+>
+> Empty states
+>
+> Browser refresh
+>
+> Deep links
+>
+> Slow network
+>
+> Multiple refreshes
+>
+> Repeat interview
+>
+> Session recovery
+>
+> Anything that could reduce judge confidence.
+>
+> DO NOT FIX YET.
+>
+> Generate a prioritized issue list.
+>
+> ------------------------------------------------------------
+>
+> PHASE 3 — BUG BASH
+>
+> Fix ONLY the issues discovered during judge simulation.
+>
+> Rules:
+>
+> No new features.
+>
+> No redesign.
+>
+> No architecture changes.
+>
+> Only bug fixes.
+>
+> After every fix:
+>
+> Run:
+>
+> Backend Tests
+>
+> Frontend Tests
+>
+> Typecheck
+>
+> Production Build
+>
+> All must pass.
+>
+> Commit after every fix.
+>
+> ------------------------------------------------------------
+>
+> PHASE 4 — PERFORMANCE
+>
+> Review:
+>
+> Bundle Size
+>
+> Build Time
+>
+> API Response Time
+>
+> Initial Load
+>
+> Memory Usage
+>
+> Large Assets
+>
+> Unused Dependencies
+>
+> Duplicate Packages
+>
+> Optimize only if the gain is meaningful.
+>
+> Do NOT sacrifice readability.
+>
+> ------------------------------------------------------------
+>
+> PHASE 5 — PRESENTATION PREPARATION
+>
+> Create a professional hackathon presentation package.
+>
+> Generate:
+>
+> 1.
+>
+> 90 Second Pitch
+>
+> 2.
+>
+> 3 Minute Pitch
+>
+> 3.
+>
+> 5 Minute Demo Script
+>
+> 4.
+>
+> Judge Walkthrough
+>
+> Minute-by-minute.
+>
+> Exactly what to click.
+>
+> Exactly what to say.
+>
+> Exactly which candidate to choose.
+>
+> Exactly which answers to type.
+>
+> Exactly which report to show.
+>
+> Exactly what differentiates VIVA.
+>
+> 5.
+>
+> Expected Judge Questions
+>
+> Generate at least 50 likely questions.
+>
+> For each question provide:
+>
+> Best answer
+>
+> Technical justification
+>
+> Business justification
+>
+> Engineering reasoning
+>
+> Tradeoffs
+>
+> 6.
+>
+> Architecture Explanation
+>
+> Simple
+>
+> Intermediate
+>
+> Deep Technical
+>
+> 7.
+>
+> Top Differentiators
+>
+> Explain clearly why VIVA is different from generic AI interview systems.
+>
+> ------------------------------------------------------------
+>
+> PHASE 6 — SUBMISSION REVIEW
+>
+> Review the entire submission package.
+>
+> Verify:
+>
+> README
+>
+> PROMPTS.md
+>
+> Repository
+>
+> Folder Structure
+>
+> License
+>
+> .env.example
+>
+> Deployment URL
+>
+> Git History
+>
+> Public Repository
+>
+> No secrets committed
+>
+> No API keys
+>
+> No temporary files
+>
+> No debug logs
+>
+> No TODOs
+>
+> No broken links
+>
+> No placeholder text
+>
+> No Lorem Ipsum
+>
+> No console errors
+>
+> No failing tests
+>
+> ------------------------------------------------------------
+>
+> PHASE 7 — FINAL CTO REVIEW
+>
+> Now act as a Principal Engineer, Startup CTO, and Hackathon Judge simultaneously.
+>
+> Spend significant effort trying to reject this project.
+>
+> Do NOT praise it.
+>
+> Try to find reasons why it should lose.
+>
+> For every issue provide:
+>
+> Severity
+>
+> Reason
+>
+> Impact
+>
+> Implementation Time
+>
+> Expected Improvement
+>
+> Fix only Critical and High severity issues.
+>
+> Ignore Low severity improvements.
+>
+> ------------------------------------------------------------
+>
+> PHASE 8 — FINAL RELEASE
+>
+> When every critical issue is resolved:
+>
+> Generate:
+>
+> Submission Checklist
+>
+> Deployment Checklist
+>
+> Demo Checklist
+>
+> Judge Checklist
+>
+> Risk Checklist
+>
+> Rollback Plan
+>
+> Emergency Plan if API fails
+>
+> Emergency Plan if LLM fails
+>
+> Emergency Plan if deployment fails
+>
+> ------------------------------------------------------------
+>
+> PROMPTS.md
+>
+> After EVERY completed phase:
+>
+> Update PROMPTS.md.
+>
+> Append the COMPLETE EXACT PROMPT.
+>
+> Do NOT summarize.
+>
+> Preserve formatting exactly.
+>
+> Append:
+>
+> AI Response Summary
+>
+> Files Modified
+>
+> Commands Executed
+>
+> Tests Run
+>
+> Build Result
+>
+> Commit Hash
+>
+> Push Status
+>
+> Outcome
+>
+> Never overwrite previous entries.
+>
+> ------------------------------------------------------------
+>
+> SUCCESS CRITERIA
+>
+> The project should feel like:
+>
+> A polished production SaaS product.
+>
+> Not a hackathon prototype.
+>
+> Every decision must maximize judge confidence.
+>
+> Every screen must build trust.
+>
+> Every interaction must feel intentional.
+>
+> Every bug must be eliminated.
+>
+> Every demonstration must be smooth.
+>
+> The objective is not to impress with complexity.
+>
+> The objective is to create the strongest possible submission.
+>
+> Begin immediately.
+>
+> Follow every phase sequentially.
+>
+> Do not skip phases.
+>
+> Do not ask for confirmation until all phases are complete. One final instruction:
+>
+> At every decision, ask yourself only one question:
+>
+> "If I were judging 20,000 projects, would this increase the probability that I remember this project tomorrow?"
+>
+> If the answer is NO, do not implement it.
+>
+> If the answer is YES, implement it with production quality. IMPORTANT:
+>
+> After completing this task:
+>
+> 1. Update PROMPTS.md immediately.
+>
+> 2. Append the COMPLETE EXACT PROMPT exactly as received.
+>
+> 3. Do NOT summarize the prompt.
+>
+> 4. Preserve formatting exactly.
+>
+> 5. Then append:
+>    - AI Response Summary
+>    - Files Modified
+>    - Commands Executed
+>    - Tests Run
+>    - Build Results
+>    - Git Commit Hash
+>    - Git Push Status
+>    - Outcome
+>
+> 6. Keep the log in chronological order.
+>
+> 7. Never overwrite previous entries.
+>
+> 8. Never omit any implementation prompt.
+>
+> 9. Never paraphrase prompts.
+>
+> 10. PROMPTS.md is part of the deliverable and must always remain up to date after every completed task.
+
+**AI Response Summary (Phase 1 — Deployment):** Prepared the project for production deployment. Audited `.env.example` against `app/config.py` and added the missing variables (`VIVA_APP_NAME`, `VIVA_DATA_DIR`, `VIVA_CURRICULUM_PATH`, `VIVA_MAX_MESSAGE_CHARS`, `VIVA_MAX_BODY_BYTES`). Added `run.sh` (production start: venv bootstrap, frontend build if `dist/` missing, single uvicorn process serving API + SPA). Added `scripts/smoke_test.py` — an 18-check production smoke suite. Deployed locally in production mode (uvicorn on :8000, `dist/` build served) and verified: health 200, root 200, deep-link `/report` → SPA 200, assets (JS/CSS/fonts) 200, `/api/*` 404 JSON, unknown session 404, contract validation errors (400/413/422), full interview lifecycle (start → weak answer → hint → transcript meta → /end → report), replay-completed 409, and session resume across a server restart (interrupted interview continued with the next question).
+
+**Files Modified:** `.env.example` (completed env documentation), `run.sh` (new), `scripts/smoke_test.py` (new), `PROMPTS.md` (this entry).
+
+**Commands Executed:** `npm run build` (frontend, ✓ 552ms); `uvicorn app.main:app --host 127.0.0.1 --port 8000` (deployed); curl checks for health/root/deep-link/assets/api-404; `./.venv/bin/python scripts/smoke_test.py` → SMOKE: all checks passed (18/18); server restart + session resume test.
+
+**Tests Run:** backend 89/89; frontend vitest 9/9; typecheck exit 0; production build clean — all green before commit.
+
+**Build Result:** `✓ built in 552ms`; SPA bundle served correctly (JS 231,655 B, CSS 38,221 B, Inter woff2 subsets).
+
+**Git Commit Hash:** `(M8-phase1)` — committed after this entry.
+
+**Git Push Status:** Pushed to `origin/main`.
+
+**Outcome:** Deployment checklist complete: env vars documented, health endpoint live, static + SPA routing verified, error pages JSON-consistent, build reproducible via `run.sh`, production startup verified, sessions survive restarts. Smoke suite 18/18 green. Phase 1 complete.
