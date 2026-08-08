@@ -2855,3 +2855,137 @@ Each entry follows the same journal structure:
 **Git Push Status:** Pushed to `origin/main`.
 
 **Outcome:** Deployment checklist complete: env vars documented, health endpoint live, static + SPA routing verified, error pages JSON-consistent, build reproducible via `run.sh`, production startup verified, sessions survive restarts. Smoke suite 18/18 green. Phase 1 complete.
+
+---
+
+## M8 Phase 2 — End-to-End Judge Simulation
+
+### 2026-08-08 — Prompt (exact, Phase 2 section of the Final Execution prompt)
+
+> PHASE 2 — END TO END JUDGE SIMULATION
+>
+> Now become an official hackathon judge.
+>
+> Forget you built the project.
+>
+> Pretend this is one of 20,000 submissions.
+>
+> Use ONLY the deployed application.
+>
+> Do NOT inspect the source code.
+>
+> Judge only the product.
+>
+> Perform the complete flow.
+>
+> Landing
+>
+> ↓
+>
+> Candidate Selection
+>
+> ↓
+>
+> Interview
+>
+> ↓
+>
+> Adaptive Questions
+>
+> ↓
+>
+> Hints
+>
+> ↓
+>
+> Follow Ups
+>
+> ↓
+>
+> Interview Completion
+>
+> ↓
+>
+> Engineering Assessment Report
+>
+> ↓
+>
+> Copy Link
+>
+> ↓
+>
+> Print
+>
+> ↓
+>
+> Return Home
+>
+> Test everything.
+>
+> Find every possible issue.
+>
+> Focus on:
+>
+> Confusing UX
+>
+> Typos
+>
+> Loading
+>
+> Error states
+>
+> Responsiveness
+>
+> Accessibility
+>
+> Performance
+>
+> Visual consistency
+>
+> Broken navigation
+>
+> Mobile issues
+>
+> Empty states
+>
+> Browser refresh
+>
+> Deep links
+>
+> Slow network
+>
+> Multiple refreshes
+>
+> Repeat interview
+>
+> Session recovery
+>
+> Anything that could reduce judge confidence.
+>
+> DO NOT FIX YET.
+>
+> Generate a prioritized issue list.
+
+**AI Response Summary (Phase 2):** Drove the deployed application end to end as a judge via `scripts/judge_simulation.py` (weak candidate CAND-010, full 8-question arc: welcome → 8 adaptive questions across Days 7/8/10/12/16/22, hints, grounded follow-up, /hint, /end, transcript with meta, report) and `scripts/judge_happy_path.py` (strong senior CAND-001, clean answers, 8/8 questions, auto-completion on the final answer, full report). Verified completion only fires when the 8th answer arrives (Q8 answer is the wrap-up turn — correct flow), deep links, session resume after server restart, error contract (404/409/413/422), and every UI state path in Report/InterviewRoom/Landing source (loading, empty, error, done, resume, back-nav dead-ends).
+
+**Prioritized issue list (no fixes yet — per prompt):**
+1. **HIGH — Shared-link report header shows raw session id** (`Report.tsx` candidateName): session ids are lowercase (`viva-cand-010-…`) but `candidateById` matches case-sensitively → on a fresh browser the report title becomes `viva-cand-010-xxx — Engineering Assessment` instead of the candidate name. Breaks the flagship Copy-Link flow.
+2. **MEDIUM — Hint grammar broken** (`interviewer.py` hint template): "Here's a starting point for Day 7: think about understand how text is converted into vector embeddings." and "think about create specialized agents…" — every hint in a demo exposes broken English.
+3. **MEDIUM-LOW — Composer has no maxLength** (`InterviewRoom.tsx`): pasting >4000 chars → backend 413 → misleading "Could not reach the interviewer." error.
+4. **LOW — Copy-link clipboard call unguarded** (`Report.tsx`): `navigator.clipboard.writeText` has no catch; fails silently on non-secure contexts (LAN http).
+5. **LOW — First-message placeholder copy** (`InterviewRoom.tsx`): "Answer the question" shows before any question exists (welcome bubble is first).
+6. **LOW — Stale-tab 409** after completing a session in another tab surfaces as a generic send error (acceptable; future improvement).
+
+**Files Modified:** `scripts/judge_simulation.py` (new), `scripts/judge_happy_path.py` (new), `PROMPTS.md` (this entry).
+
+**Commands Executed:** `./.venv/bin/python scripts/judge_simulation.py http://127.0.0.1:8000`; `./.venv/bin/python scripts/judge_happy_path.py http://127.0.0.1:8000`; live-session continuation probes (9th message → "Interview completed.").
+
+**Tests Run:** backend 89/89; frontend vitest 9/9; typecheck exit 0; production build clean.
+
+**Build Result:** n/a (no code changes this phase).
+
+**Git Commit Hash:** (none — documentation phase).
+
+**Git Push Status:** n/a.
+
+**Outcome:** Judge simulation complete; 6 issues found (1 high, 1 medium, 1 medium-low, 3 low). No fixes applied this phase, per the prompt's DO NOT FIX YET rule.

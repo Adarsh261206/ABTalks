@@ -32,7 +32,7 @@ export const moduleForDay = (day: number): CurriculumModule | undefined =>
 export const allCandidates = candidates;
 
 export function candidateById(id: string): CandidateProfile | undefined {
-  return candidates.find((c) => c.member.id === id);
+  return candidates.find((c) => c.member.id.toLowerCase() === id.toLowerCase());
 }
 
 export interface DemoProfile {
