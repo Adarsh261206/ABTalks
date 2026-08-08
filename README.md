@@ -189,6 +189,8 @@ git clone https://github.com/Adarsh261206/ABTalks.git && cd ABTalks
 
 Open `http://localhost:8000`, pick a candidate, start an interview. Done.
 
+**Want it live?** The repo ships a `Dockerfile` + `railway.toml` — deploy to Railway (free): new project → deploy from this GitHub repo → Railway auto-detects the Dockerfile → open the generated `*.up.railway.app` URL. Zero env vars needed (mock provider).
+
 <details>
 <summary>Manual start / real-LLM mode (optional)</summary>
 

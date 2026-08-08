@@ -1,0 +1,17 @@
+# Railway deployment config (VIVA)
+# Railway auto-detects the Dockerfile. The image serves the API + SPA on one
+# process; the only runtime requirement is the generated PORT env var.
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 120
+healthcheckInterval = 10
+
+# Optional environment variables (all have safe defaults — VIVA runs on the
+# deterministic mock provider with zero configuration):
+# VIVA_LLM_PROVIDER=mock | openai | groq
+# VIVA_LLM_MODEL=
+# VIVA_LLM_BASE_URL=
+# VIVA_OPENAI_API_KEY=
+# VIVA_GROQ_API_KEY=
+# VIVA_LLM_TEMPERATURE=0.2
