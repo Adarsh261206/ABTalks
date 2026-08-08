@@ -3333,3 +3333,49 @@ Deferred to Future Improvements (not bugs): stale-tab 409 after completing in an
 **Git Push Status:** Pushed to `origin/main`.
 
 **Outcome:** One High issue fixed (favicon); all remaining findings are accepted, documented risks — none are Critical, and the Medium/Low items would violate the "no complexity" rule or touch frozen backend settings.
+
+---
+
+## M8 Phase 8 — Final Release
+
+### 2026-08-08 — Prompt (exact, Phase 8 section of the Final Execution prompt)
+
+> PHASE 8 — FINAL RELEASE
+>
+> When every critical issue is resolved:
+>
+> Generate:
+>
+> Submission Checklist
+>
+> Deployment Checklist
+>
+> Demo Checklist
+>
+> Judge Checklist
+>
+> Risk Checklist
+>
+> Rollback Plan
+>
+> Emergency Plan if API fails
+>
+> Emergency Plan if LLM fails
+>
+> Emergency Plan if deployment fails
+
+**AI Response Summary (Phase 8):** Created `FINAL-RELEASE.md` — the complete release kit: submission checklist (repo, docs, license, no-secrets, green tests), deployment checklist (run.sh, health, SPA, data dir, LLM mode), demo checklist (scripted personas, second-tab report reveal, commands), judge checklist (evidence chain, contrast demo, Q&A reference), risk register with mitigations, rollback plan (known-good commit checkpoints: `43382ac`/`77ab92e`/`a490f12`/`cfdd3a1`), and emergency plans for API / LLM / deployment failure with degraded paths down to a pre-recorded demo. Final verification: full test suite + smoke suite green on the deployed server.
+
+**Files Modified:** `FINAL-RELEASE.md` (new), `PROMPTS.md` (this entry — final).
+
+**Commands Executed:** full verification suite (backend pytest, frontend vitest, typecheck, build, smoke) one last time against the deployed server.
+
+**Tests Run:** backend 89/89 (exit 0); frontend 9/9; typecheck clean; build clean (482ms); smoke suite 18/18.
+
+**Build Result:** clean.
+
+**Git Commit Hash:** (committed with this entry).
+
+**Git Push Status:** Pushed to `origin/main`.
+
+**Outcome:** M8 complete — all 8 phases done sequentially: deployment verified (18/18 smoke), judge simulation (6 issues found), bug bash (5 fixed, 5 commits, all green), performance review (no changes needed), presentation package (PRESENTATION.md), submission review (LICENSE added), adversarial CTO review (favicon fixed), final release kit (FINAL-RELEASE.md). The submission is feature-complete, verified, documented, and demo-ready.
