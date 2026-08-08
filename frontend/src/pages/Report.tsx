@@ -11,7 +11,7 @@ import {
   analyzeTranscript,
   CORE_DAYS,
   extractDayNumbers,
-  verdictFromSummary,
+  verdictFor,
 } from "../lib/interview";
 import type { SessionView } from "../lib/types";
 
@@ -86,7 +86,7 @@ export function Report() {
   }
 
   const report = session.report;
-  const verdict = verdictFromSummary(report.summary);
+  const verdict = verdictFor(analysis);
   const verdictTone = verdict === "Strong" ? "mint" : verdict === "Developing" ? "amber" : "aurora";
   const coveredSet = new Set(analysis.coveredDays);
 

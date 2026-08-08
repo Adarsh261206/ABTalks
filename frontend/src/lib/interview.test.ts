@@ -3,7 +3,7 @@ import {
   analyzeTranscript,
   extractDayNumbers,
   phaseFor,
-  verdictFromSummary,
+  verdictFor,
 } from "./interview";
 import type { TranscriptEntry } from "./types";
 
@@ -88,10 +88,13 @@ describe("extractDayNumbers", () => {
   });
 });
 
-describe("verdictFromSummary", () => {
-  it("classifies verdicts from the report summary", () => {
-    expect(verdictFromSummary("Practice interview completed. Strong.")).toBe("Strong");
-    expect(verdictFromSummary("Practice interview completed. A few areas need reinforcement.")).toBe("Developing");
-    expect(verdictFromSummary("Practice interview completed.")).toBe("Balanced");
+describe("verdictFor", () => {
+  it("is driven by coverage and probes, never prose keywords", () => {
+    expect(verdictFor({ coveragePct: 70, probes: 1, hints: 0 })).toBe("Strong");
+    expect(verdictFor({ coveragePct: 60, probes: 2, hints: 1 })).toBe("Strong");
+    expect(verdictFor({ coveragePct: 55, probes: 3, hints: 0 })).toBe("Balanced");
+    expect(verdictFor({ coveragePct: 45, probes: 1, hints: 0 })).toBe("Balanced");
+    expect(verdictFor({ coveragePct: 20, probes: 1, hints: 0 })).toBe("Developing");
+    expect(verdictFor({ coveragePct: 45, probes: 6, hints: 2 })).toBe("Developing");
   });
 });

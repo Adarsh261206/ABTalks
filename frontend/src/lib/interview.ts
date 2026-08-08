@@ -108,11 +108,15 @@ export function extractDayNumbers(text: string): number[] {
   return [...days].sort((a, b) => a - b);
 }
 
-export function verdictFromSummary(summary: string): "Strong" | "Developing" | "Balanced" {
-  const lower = summary.toLowerCase();
-  if (lower.includes("strong") || lower.includes("solid")) return "Strong";
-  if (lower.includes("reinforcement") || lower.includes("gaps") || lower.includes("develop"))
-    return "Developing";
+/**
+ * Deterministic verdict from transcript-derived numbers, not prose keywords:
+ * the badge can never contradict the metrics shown next to it.
+ */
+export function verdictFor(
+  analysis: Pick<TranscriptAnalysis, "coveragePct" | "probes" | "hints">,
+): "Strong" | "Developing" | "Balanced" {
+  if (analysis.coveragePct >= 50 && analysis.probes <= 2) return "Strong";
+  if (analysis.coveragePct < 30 || analysis.probes >= 5) return "Developing";
   return "Balanced";
 }
 
