@@ -3272,3 +3272,64 @@ Deferred to Future Improvements (not bugs): stale-tab 409 after completing in an
 **Git Push Status:** Pushed to `origin/main`.
 
 **Outcome:** Submission package verified clean — no secrets, no placeholders, no TODOs, no temp files, tests all green. One gap (LICENSE) closed.
+
+---
+
+## M8 Phase 7 — Final CTO Review
+
+### 2026-08-08 — Prompt (exact, Phase 7 section of the Final Execution prompt)
+
+> PHASE 7 — FINAL CTO REVIEW
+>
+> Now act as a Principal Engineer, Startup CTO, and Hackathon Judge simultaneously.
+>
+> Spend significant effort trying to reject this project.
+>
+> Do NOT praise it.
+>
+> Try to find reasons why it should lose.
+>
+> For every issue provide:
+>
+> Severity
+>
+> Reason
+>
+> Impact
+>
+> Implementation Time
+>
+> Expected Improvement
+>
+> Fix only Critical and High severity issues.
+>
+> Ignore Low severity improvements.
+
+**AI Response Summary (Phase 7):** Adversarial review — deliberately tried to reject the project. Every finding has severity / reason / impact / implementation time / expected improvement. Only Critical and High issues were fixed (one), per the rule.
+
+**Findings:**
+| Sev | Issue | Reason | Impact | Fix time | Improvement | Action |
+| --- | --- | --- | --- | --- | --- | --- |
+| High | No favicon — default globe in the tab | Unfinished visual detail; judges scan the tab strip | Small but visible polish gap | 5 min | Intentional-branded tab | **Fixed** (inline SVG data-URI "V" mark in `frontend/index.html`, zero bundle cost) |
+| Medium | 60 req/min sliding-window rate limit per IP | Hyperactive judge clicking + refreshing could 429 | Demo disruption in extreme case | — | — | Accepted: human pace ≈ 10 req/min; frozen backend setting |
+| Medium | Two tabs on the same in-progress session can interleave turns | No tab-level exclusivity | Confusing transcript in edge case | — | — | Accepted: per-session locks prevent corruption; transcript stays honest |
+| Medium | Real-LLM path never exercised with a real key | No key available at build time | Contract risk in LLM mode | — | — | Accepted: deterministic fallbacks bound the risk; README verification checklist covers it |
+| Low | "Live session · viva-…" technical string in the interview header | Product noise | Trivial | — | — | Accepted (transparency) |
+| Low | No browser-level E2E test | API + code-level verification only | Bounded by 98 tests + smoke suite | — | — | Accepted |
+| Low | Multi-subset Inter fonts | 7 woff2 files exist | Negligible (unicode-range lazy loads only used subsets) | — | — | Accepted |
+
+**Also verified during review (rejection attempts failed):** fresh-clone safety (`store.py` mkdirs `data/`), LLM error fallbacks (LLMGatewayError → template), SPA path-traversal guard (`is_relative_to`), session-id validation (1–128 chars, no control chars), `<title>` + description meta present, no console.log/TODO in source, report empty-state copy for sessions without reports, `theme-color` matches dark UI.
+
+**Files Modified:** `frontend/index.html` (favicon), `PROMPTS.md` (this entry).
+
+**Commands Executed:** adversarial greps (LLM error paths, session TTL cleanup, rate limiter window, mkdir-on-startup, path traversal), index.html audit, full verification suite, server restart + smoke re-run.
+
+**Tests Run:** backend exit 0; frontend 9/9; typecheck clean; build clean; smoke suite 18/18 after restart.
+
+**Build Result:** clean (482ms).
+
+**Git Commit Hash:** (committed with this entry).
+
+**Git Push Status:** Pushed to `origin/main`.
+
+**Outcome:** One High issue fixed (favicon); all remaining findings are accepted, documented risks — none are Critical, and the Medium/Low items would violate the "no complexity" rule or touch frozen backend settings.
