@@ -89,9 +89,19 @@ export function InterviewRoom() {
       cancelled = true;
     };
   }, [navigate]);
+  // auto-scroll only when the reader is already at the bottom (or on the very
+  // first transcript render after a resume) — never yank an upward-scrolling
+  // judge back down
+  const prevTranscriptLenRef = useRef(0);
   useEffect(() => {
     const node = timelineRef.current;
-    if (node) node.scrollTo({ top: node.scrollHeight, behavior: "smooth" });
+    if (!node) return;
+    const firstRender = prevTranscriptLenRef.current === 0 && transcript.length > 0;
+    const atBottom = node.scrollHeight - node.scrollTop - node.clientHeight < 160;
+    if (firstRender || atBottom) {
+      node.scrollTo({ top: node.scrollHeight, behavior: firstRender ? "auto" : "smooth" });
+    }
+    prevTranscriptLenRef.current = transcript.length;
   }, [transcript, busy]);
 
   const start = useCallback(
