@@ -439,6 +439,7 @@ export function InterviewRoom() {
                 sessionId ? "Answer the question — Enter to send, Shift+Enter for newline" : "Answer naturally…"
               }
               rows={2}
+              maxLength={4000}
               className="max-h-40 flex-1 resize-none rounded-xl border border-white/10 bg-ink-850 px-4 py-3 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-aurora-500/40 focus:outline-none"
             />
             <Button
