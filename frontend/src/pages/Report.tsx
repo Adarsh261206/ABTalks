@@ -13,6 +13,11 @@ import {
   extractDayNumbers,
   verdictFor,
 } from "../lib/interview";
+import {
+  MASTERY_STATUS_LABELS,
+  estimatesFor,
+  type MasteryStatus,
+} from "../lib/mastery";
 import type { SessionView } from "../lib/types";
 
 export function Report() {
@@ -57,6 +62,18 @@ export function Report() {
     [session],
   );
 
+  const masteryRows = useMemo(() => {
+    if (!session || !analysis) return [];
+    const id = candidateIdFromSession(session.session_id);
+    const candidate = id ? candidateById(id) ?? null : null;
+    return estimatesFor(
+      analysis.completedDays,
+      analysis.perDay,
+      analysis.coveredDays,
+      candidate,
+    );
+  }, [session, analysis]);
+
   if (loading) {
     return (
       <div
@@ -92,6 +109,7 @@ export function Report() {
   const verdict = verdictFor(analysis);
   const verdictTone = verdict === "Strong" ? "mint" : verdict === "Developing" ? "amber" : "aurora";
   const coveredSet = new Set(analysis.coveredDays);
+  const masteryRowByDay = new Map(masteryRows.map((row) => [row.day, row]));
   const completedDays = analysis.completedDays;
   const completedLabel =
     completedDays.length > 0 ? String(completedDays.length) : "—";
@@ -168,8 +186,9 @@ export function Report() {
               {analysis.coveredDays.length}/{completedLabel} completed curriculum days interviewed
             </p>
             <p className="mt-1 text-[11px] text-zinc-700">
-              The interview only covers days you completed; the rest of your completed
-              curriculum is assessed from your mission record and belief estimates.
+              The interview pool is your completed curriculum only. Days not asked are
+              estimated from the mission record + belief state — estimates are never
+              presented as verified.
             </p>
           </Card>
           <Card className="p-5">
@@ -224,11 +243,84 @@ export function Report() {
           </Card>
         </section>
 
-        {/* curriculum coverage map */}
+        {/* completed-curriculum mastery & evidence */}
         <section className="mt-12 animate-fade-up" style={{ animationDelay: "200ms" }}>
+          <h2 className="text-sm font-medium text-zinc-100">Completed curriculum — mastery &amp; evidence</h2>
+          <p className="mt-1 text-xs text-zinc-500">
+            The interview pool is your completed curriculum only — every day you passed.{" "}
+            {masteryRows.filter((r) => r.covered).length} of {masteryRows.length} were
+            covered live; the rest are estimated from your mission record and belief
+            state. Estimates are directional and never implied to be verified.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Badge tone="mint">✓ Interview Verified</Badge>
+            <Badge tone="aurora">≈ Estimated from Profile + Belief State</Badge>
+            <Badge tone="amber">⚠ Needs Validation</Badge>
+            <Badge tone="neutral">Not in pool (failed / skipped / not started)</Badge>
+          </div>
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-white/8 print:text-zinc-800">
+            <table className="w-full min-w-[720px] text-left text-sm">
+              <thead className="bg-white/3 text-[11px] uppercase tracking-wide text-zinc-500">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Day</th>
+                  <th className="px-4 py-3 font-medium">Topic</th>
+                  <th className="px-4 py-3 font-medium">Mastery estimate</th>
+                  <th className="px-4 py-3 font-medium">Confidence</th>
+                  <th className="px-4 py-3 font-medium">Evidence source</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {masteryRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-zinc-500">
+                      No completed curriculum days in this candidate's record.
+                    </td>
+                  </tr>
+                ) : (
+                  masteryRows.map((row) => {
+                    const tone = masteryTone(row.status);
+                    const pct = row.mastery == null ? null : Math.round(row.mastery * 100);
+                    return (
+                      <tr key={row.day} className="bg-ink-900/40">
+                        <td className="px-4 py-3 font-medium text-aurora-300">{row.day}</td>
+                        <td className="px-4 py-3 text-zinc-400">{dayTitle(row.day)}</td>
+                        <td className="px-4 py-3">
+                          {pct == null ? (
+                            <span className="text-zinc-600">—</span>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="w-10 font-medium text-zinc-200">{pct}%</span>
+                              <Progress value={pct} tone={tone} className="w-24" />
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`font-medium ${row.confidence === "High" ? "text-mint-300" : "text-amber-300/90"}`}>
+                            {row.confidence}
+                          </span>
+                          <div className="mt-0.5 text-[11px] text-zinc-600">{row.confidenceReason}</div>
+                        </td>
+                        <td className="px-4 py-3 text-zinc-400">{row.evidenceSource}</td>
+                        <td className="px-4 py-3">
+                          <Badge tone={tone}>{MASTERY_STATUS_LABELS[row.status]}</Badge>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* curriculum coverage map */}
+        <section className="mt-12 animate-fade-up" style={{ animationDelay: "260ms" }}>
           <h2 className="text-sm font-medium text-zinc-100">Coverage across the cohort</h2>
           <p className="mt-1 text-xs text-zinc-500">
-            Every day the interview touched, mapped to its module. Core question days are outlined.
+            Interview pool = completed curriculum days (tinted). Verified days are mint,
+            needs-validation amber, estimated aurora; the rest are not in the pool. Core
+            question days are outlined.
           </p>
           <div className="mt-4 space-y-3">
             {curriculumModules.map((module) => {
@@ -248,19 +340,27 @@ export function Report() {
                   </div>
                   <div className="mt-3 grid grid-cols-4 gap-1.5 sm:gap-2">
                     {days.map((day) => {
-                      const covered = coveredSet.has(day);
                       const core = CORE_DAYS.includes(day);
+                      const row = masteryRowByDay.get(day);
+                      const tone = row ? masteryTone(row.status) : null;
+                      const title = row
+                        ? `Day ${day} — ${dayTitle(day)} · ${MASTERY_STATUS_LABELS[row.status]}${
+                            row.mastery == null ? "" : ` · ${Math.round(row.mastery * 100)}%`
+                          }`
+                        : `Day ${day} — ${dayTitle(day)} (not in interview pool)`;
                       return (
                         <div
                           key={day}
-                          title={`Day ${day} — ${dayTitle(day)}${covered ? " (discussed)" : ""}`}
+                          title={title}
                           className={`flex aspect-[2.2/1] items-center justify-center rounded-lg border text-xs font-medium transition-colors ${
-                            covered
+                            tone === "mint"
                               ? "border-mint-400/30 bg-mint-400/10 text-mint-300"
-                              : core
-                                ? "border-aurora-500/30 bg-aurora-500/5 text-aurora-300/70"
-                                : "border-white/6 bg-white/2 text-zinc-700"
-                          }`}
+                              : tone === "amber"
+                                ? "border-amber-300/30 bg-amber-300/10 text-amber-300"
+                                : tone === "aurora"
+                                  ? "border-aurora-500/30 bg-aurora-500/10 text-aurora-300"
+                                  : "border-white/6 bg-white/2 text-zinc-700"
+                          } ${core ? "ring-1 ring-inset ring-white/25" : ""}`}
                         >
                           {day}
                         </div>
@@ -274,10 +374,10 @@ export function Report() {
         </section>
 
         {/* per-day probe analysis */}
-        <section className="mt-12 animate-fade-up" style={{ animationDelay: "260ms" }}>
+        <section className="mt-12 animate-fade-up" style={{ animationDelay: "320ms" }}>
           <h2 className="text-sm font-medium text-zinc-100">Where VIVA probed deeper</h2>
           <p className="mt-1 text-xs text-zinc-500">
-            Per-day question counts and grounded follow-ups, straight from the transcript metadata.
+            Per-day question and answer counts plus grounded follow-ups, straight from the transcript metadata.
           </p>
           <div className="mt-4 overflow-x-auto rounded-2xl border border-white/8">
             <table className="w-full min-w-[560px] text-left text-sm print:text-zinc-800">
@@ -286,6 +386,7 @@ export function Report() {
                   <th className="px-4 py-3 font-medium">Day</th>
                   <th className="px-4 py-3 font-medium">Topic</th>
                   <th className="px-4 py-3 text-center font-medium">Questions</th>
+                  <th className="px-4 py-3 text-center font-medium">Answers</th>
                   <th className="px-4 py-3 text-center font-medium">Follow-ups</th>
                   <th className="px-4 py-3 text-center font-medium">Hints</th>
                 </tr>
@@ -293,7 +394,7 @@ export function Report() {
               <tbody className="divide-y divide-white/5">
                 {[...analysis.perDay.entries()].length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-zinc-500">
+                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-zinc-500">
                       No days were discussed in this session.
                     </td>
                   </tr>
@@ -305,6 +406,7 @@ export function Report() {
                         <td className="px-4 py-3 font-medium text-aurora-300">{day}</td>
                         <td className="px-4 py-3 text-zinc-400">{dayTitle(day)}</td>
                         <td className="px-4 py-3 text-center text-zinc-300">{signal.questions}</td>
+                        <td className="px-4 py-3 text-center text-zinc-300">{signal.answers}</td>
                         <td className="px-4 py-3 text-center">
                           {signal.probes > 0 ? (
                             <Badge tone="aurora">{signal.probes}</Badge>
@@ -328,7 +430,7 @@ export function Report() {
         </section>
 
         {/* transcript */}
-        <section className="mt-12 animate-fade-up" style={{ animationDelay: "320ms" }}>
+        <section className="mt-12 animate-fade-up" style={{ animationDelay: "380ms" }}>
           <details className="group rounded-2xl border border-white/8 bg-ink-900/60 p-5 print:hidden">
             <summary className="cursor-pointer list-none text-sm font-medium text-zinc-200 marker:hidden">
               <span className="mr-2 inline-block transition-transform group-open:rotate-90" aria-hidden="true">
@@ -358,6 +460,12 @@ export function Report() {
       </main>
     </div>
   );
+}
+
+function masteryTone(status: MasteryStatus): "mint" | "amber" | "aurora" {
+  if (status === "verified") return "mint";
+  if (status === "needs_validation") return "amber";
+  return "aurora";
 }
 
 function candidateName(session: SessionView): string {

@@ -61,6 +61,17 @@ describe("analyzeTranscript", () => {
     expect(a.perDay.get(7)?.missingConcepts).toEqual(["chunk", "vector"]);
   });
 
+  it("attributes candidate answers to the active day positionally", () => {
+    const a = analyzeTranscript(transcript);
+    expect(a.perDay.get(7)?.answers).toBe(2);
+    expect(a.perDay.get(8)?.answers).toBe(1);
+  });
+
+  it("ignores candidate answers before the first question", () => {
+    const pre = analyzeTranscript([entry("candidate", "hello?"), ...transcript]);
+    expect(pre.perDay.get(7)?.answers).toBe(2);
+  });
+
   it("survives an empty transcript", () => {
     const a = analyzeTranscript([]);
     expect(a.questionsAsked).toBe(0);

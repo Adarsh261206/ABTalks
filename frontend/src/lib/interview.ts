@@ -21,6 +21,7 @@ export interface DaySignal {
   questions: number;
   probes: number;
   hints: number;
+  answers: number;
   followupReasons: string[];
   missingConcepts: string[];
 }
@@ -63,15 +64,34 @@ export function analyzeTranscript(
 
   const perDay = new Map<number, DaySignal>();
   const seen = new Set<number>();
+  let currentDay: number | null = null;
 
   for (const entry of transcript) {
-    if (entry.role !== "interviewer") continue;
+    if (entry.role === "candidate") {
+      if (currentDay != null) {
+        const signal =
+          perDay.get(currentDay) ??
+          {
+            day: currentDay,
+            questions: 0,
+            probes: 0,
+            hints: 0,
+            answers: 0,
+            followupReasons: [],
+            missingConcepts: [],
+          };
+        signal.answers += 1;
+        perDay.set(currentDay, signal);
+      }
+      continue;
+    }
     const day = entry.day ?? entry.meta?.day;
     if (day == null) continue;
+    currentDay = day;
     const isFollowUp = entry.meta?.action === "follow_up";
     const signal =
       perDay.get(day) ??
-      { day, questions: 0, probes: 0, hints: 0, followupReasons: [], missingConcepts: [] };
+      { day, questions: 0, probes: 0, hints: 0, answers: 0, followupReasons: [], missingConcepts: [] };
     if (isFollowUp) {
       signal.probes += 1;
       if (entry.meta?.followup_reason) signal.followupReasons.push(entry.meta.followup_reason);

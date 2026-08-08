@@ -3789,3 +3789,101 @@ Deferred to Future Improvements (not bugs): stale-tab 409 after completing in an
 **Git Push Status:** Pushed to `origin/main`.
 
 **Outcome:** VIVA is live at **https://abtalks-production.up.railway.app** and verified end to end from the outside (no tunnel, no localhost). Judges can open the product directly.
+
+---
+
+## M10 — Engineering Assessment Report: Mastery & Evidence Visualization
+
+### 2026-08-08 ~12:50 IST — Report-only improvement (builder's directive)
+
+**Exact Prompt(s):**
+
+> verbatim:
+>
+> Continue from commit 8eddb1c.
+>
+> The interview pool redesign is already complete.
+>
+> Do NOT reimplement it.
+>
+> First verify that the following are already implemented:
+>
+> - Interview pool built only from completed curriculum days
+> - Failed/skipped/not-started days excluded from interview
+> - Coverage calculated against completed curriculum days
+>
+> If all are already present, DO NOT modify them.
+>
+> Now improve only the Engineering Assessment Report.
+>
+> The report should make the interview pool logic visible.
+>
+> For every completed curriculum day display:
+>
+> - Mastery Estimate
+> - Confidence
+> - Evidence Source
+> - Status
+>
+> Status must be one of:
+>
+> ✓ Interview Verified
+> ≈ Estimated from Profile + Belief State
+> ⚠ Needs Validation
+>
+> The report must clearly distinguish:
+>
+> Observed during interview
+>
+> vs
+>
+> Estimated from candidate history.
+>
+> Never imply estimated mastery is verified.
+>
+> Replace empty curriculum cards with meaningful mastery visualization.
+>
+> Do not redesign the backend.
+>
+> Do not change the interview engine.
+>
+> Do not change the API.
+>
+> Only improve the report and frontend presentation.
+>
+> After implementation:
+>
+> - Run backend tests
+> - Run frontend tests
+> - Run typecheck
+> - Run production build
+>
+> All must remain green.
+>
+> Update PROMPTS.md with the exact prompt.
+
+**AI Response Summary:** Verified M9 pool semantics in code (Director plan = passed missions only; `next_question` → None wraps the run; coverage measured against completed days via `SessionView.completed_days`) — untouched. Then added a report-only mastery visualization, frontend-only:
+
+- **New `frontend/src/lib/mastery.ts`** — deterministic, test-covered module that makes the pool logic visible per completed day:
+  - `priorForDay` mirrors the backend's `app/core/profile.py` prior exactly (skipped 0.2 / failed 0.3 / passed 0.7 − 0.05·(attempts−1) / +0.05 first-try ratio ≥ 0.5 / + seniority bonus, clamped [0.05, 0.95], rounded to 2dp).
+  - `estimateMastery` — directional interview adjustment from the transcript: −0.1 per follow-up, −0.1 per hint, −0.05 per distinct missing concept, +0.05 for clean multi-answer coverage; neutral 0.5 base when no mission record exists (share-link browser). Rounded, clamped, always labeled an *estimate*.
+  - Status rules: **✓ Interview Verified** = covered with ≥ 2 answers and zero follow-ups/hints (High confidence); **⚠ Needs Validation** = covered but probes/hints present or < 2 answers (Low confidence, reason shown); **≈ Estimated from Profile + Belief State** = completed but not asked (Low confidence; prior only, never implied verified).
+  - `estimatesFor` builds rows for every completed day (plus any covered day), sorted.
+- **`lib/interview.ts`** — `DaySignal` gained `answers`: candidate answers are attributed positionally to the active day (candidate entries carry no day; the current interviewer day is tracked through questions/follow-ups/hints). Additive, no behavior change.
+- **`pages/Report.tsx`** — new "Completed curriculum — mastery & evidence" section: legend (all three statuses + not-in-pool), and a table per completed day with **Day / Topic / Mastery estimate (percentage + tone-coded progress bar) / Confidence (High|Low + reason) / Evidence source (e.g. "Interview · 3 answers" vs "Mission record + belief prior") / Status badge** (exact labels). The coverage-map module cards are now mastery visualization instead of empty tiles: mint = verified, amber = needs validation, aurora = estimated, dim = not in pool (failed/skipped/not-started), core days outlined with an inset ring, tooltips carry status + mastery %. Probe table gained an Answers column; headline copy states pool semantics explicitly ("The interview pool is your completed curriculum only … estimates are never presented as verified").
+- **`components/ui/Progress.tsx`** — added the `amber` tone (visual only).
+- **Tests** — new `frontend/src/lib/mastery.test.ts` (17 cases: prior parity with the backend, estimate adjustments, status mapping, record-missing fallback) and 2 answer-attribution cases in `interview.test.ts`. Frontend suite total: 34 tests across both files.
+
+**Files Modified:** `frontend/src/lib/mastery.ts` (new), `frontend/src/lib/mastery.test.ts` (new), `frontend/src/lib/interview.ts` (+`answers` attribution), `frontend/src/lib/interview.test.ts` (+2 tests), `frontend/src/pages/Report.tsx` (mastery & evidence section, status-coded coverage map, Answers column, pool-copy), `frontend/src/components/ui/Progress.tsx` (amber tone), `PROMPTS.md` (this entry).
+
+**Commands Executed:** `npx tsc --noEmit`; `npx vitest run`; `npm run build`; `.venv/bin/python -m pytest` — all run locally.
+
+**Tests Run:** backend 92/92 (exit 0); frontend 34/34; typecheck clean; production build clean (72.50 kB gzip JS).
+
+**Build Result:** Frontend production build green; no backend or API changes made.
+
+**Git Commit Hash:** (uncommitted — pending the builder's review and commit).
+
+**Git Push Status:** Not pushed (nothing committed yet).
+
+**Outcome:** The report now makes the interview-pool logic visible: every completed curriculum day shows a mastery estimate, confidence with reason, evidence source, and an exact status badge that separates **observed** interview evidence from **estimated** mission-record/belief-state evidence — estimated mastery is never presented as verified. Empty coverage tiles were replaced with status-coded mastery cells. All 92 backend + 34 frontend tests, typecheck, and the production build remain green.

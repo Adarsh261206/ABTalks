@@ -5,10 +5,15 @@ export function Progress({
 }: {
   value: number;
   className?: string;
-  tone?: "aurora" | "mint";
+  tone?: "aurora" | "mint" | "amber";
 }) {
   const clamped = Math.max(0, Math.min(100, value));
-  const color = tone === "mint" ? "bg-mint-400" : "bg-gradient-to-r from-aurora-500 to-aurora-400";
+  const color =
+    tone === "mint"
+      ? "bg-mint-400"
+      : tone === "amber"
+        ? "bg-amber-300"
+        : "bg-gradient-to-r from-aurora-500 to-aurora-400";
   return (
     <div
       role="progressbar"
