@@ -3105,3 +3105,95 @@ Deferred to Future Improvements (not bugs): stale-tab 409 after completing in an
 **Git Push Status:** n/a.
 
 **Outcome:** Performance verified as production-grade with zero changes. Largest asset 70.6 kB gzip; worst-case measured turn latency 6 ms.
+
+---
+
+## M8 Phase 5 — Presentation Preparation
+
+### 2026-08-08 — Prompt (exact, Phase 5 section of the Final Execution prompt)
+
+> PHASE 5 — PRESENTATION PREPARATION
+>
+> Create a professional hackathon presentation package.
+>
+> Generate:
+>
+> 1.
+>
+> 90 Second Pitch
+>
+> 2.
+>
+> 3 Minute Pitch
+>
+> 3.
+>
+> 5 Minute Demo Script
+>
+> 4.
+>
+> Judge Walkthrough
+>
+> Minute-by-minute.
+>
+> Exactly what to click.
+>
+> Exactly what to say.
+>
+> Exactly which candidate to choose.
+>
+> Exactly which answers to type.
+>
+> Exactly which report to show.
+>
+> Exactly what differentiates VIVA.
+>
+> 5.
+>
+> Expected Judge Questions
+>
+> Generate at least 50 likely questions.
+>
+> For each question provide:
+>
+> Best answer
+>
+> Technical justification
+>
+> Business justification
+>
+> Engineering reasoning
+>
+> Tradeoffs
+>
+> 6.
+>
+> Architecture Explanation
+>
+> Simple
+>
+> Intermediate
+>
+> Deep Technical
+>
+> 7.
+>
+> Top Differentiators
+>
+> Explain clearly why VIVA is different from generic AI interview systems.
+
+**AI Response Summary (Phase 5):** Created `PRESENTATION.md` — the complete presentation package: (1) 90-second pitch, (2) 3-minute pitch, (3) 5-minute demo script with scripted answers, (4) minute-by-minute judge walkthrough with exact clicks, words, candidates (Gerald Combs — stretch story; Sarah Johnson — strong contrast), scripted answers and report moments, (5) 60 expected judge questions each with best answer + technical/business justification + engineering reasoning + tradeoffs, (6) architecture explanation at three depths (simple/intermediate/deep: director/grader/interviewer agents, grounding layer, belief state, SQLite store, SPA serving, decision pipeline), and (7) top differentiators. Also documented Future Improvements (deliberately not built, per the M8 rule).
+
+**Files Modified:** `PRESENTATION.md` (new), `PROMPTS.md` (this entry).
+
+**Commands Executed:** candidate data audit (CAND-001 Sarah Johnson 9/10 missions, CAND-010 Gerald Combs 5/10, CAND-019 Frank DeLuca 10/10); full verification suite.
+
+**Tests Run:** backend exit 0; frontend 9/9; typecheck clean; build clean.
+
+**Build Result:** clean (~500ms).
+
+**Git Commit Hash:** (committed with this entry).
+
+**Git Push Status:** Pushed to `origin/main`.
+
+**Outcome:** Presentation package complete — any team member can deliver a polished demo from the walkthrough script.
