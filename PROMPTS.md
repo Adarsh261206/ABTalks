@@ -3379,3 +3379,384 @@ Deferred to Future Improvements (not bugs): stale-tab 409 after completing in an
 **Git Push Status:** Pushed to `origin/main`.
 
 **Outcome:** M8 complete — all 8 phases done sequentially: deployment verified (18/18 smoke), judge simulation (6 issues found), bug bash (5 fixed, 5 commits, all green), performance review (no changes needed), presentation package (PRESENTATION.md), submission review (LICENSE added), adversarial CTO review (favicon fixed), final release kit (FINAL-RELEASE.md). The submission is feature-complete, verified, documented, and demo-ready.
+
+---
+
+## M8 Post-Phase 8 — README Rewrite (Judge-Optimized)
+
+### 2026-08-08 — Prompt (exact, provided by the builder during the submission-readiness pass)
+
+> The current README is technically correct but it is NOT optimized for hackathon judging.
+>
+> Rewrite the README from scratch.
+>
+> DO NOT think like a developer.
+>
+> Think like an official hackathon judge reviewing hundreds of repositories.
+>
+> The judge should understand the entire product in under 2 minutes.
+>
+> The README should immediately communicate:
+>
+> - What problem are we solving?
+> - Why existing AI interview tools fail?
+> - Why VIVA is fundamentally different?
+> - How the system actually thinks?
+> - Why this is not "just another chatbot"?
+> - Why this deserves to win?
+>
+> DO NOT make the README long for the sake of being long.
+>
+> Instead make it visually structured.
+>
+> Use diagrams.
+>
+> Use comparison tables.
+>
+> Use icons.
+>
+> Use highlighted callouts.
+>
+> Use collapsible sections only where appropriate.
+>
+> The README should contain the following sections in this exact order.
+>
+> # 1. Hero Section
+>
+> Project name.
+>
+> One-line tagline.
+>
+> One-line value proposition.
+>
+> One GIF / Screenshot placeholder.
+>
+> Three bullet points explaining the biggest differentiators.
+>
+> Example style:
+>
+> ❌ Generic AI Interview
+>
+> ✅ Curriculum Grounded
+>
+> ❌ Generic Feedback
+>
+> ✅ Evidence-Based Engineering Assessment
+>
+> ❌ Static Questions
+>
+> ✅ Adaptive Interview Engine
+>
+> --------------------------------------------------
+>
+> # 2. The Problem
+>
+> Explain in less than 8 lines.
+>
+> Show why current AI interview tools fail.
+>
+> Avoid buzzwords.
+>
+> Explain in plain English.
+>
+> --------------------------------------------------
+>
+> # 3. Our Solution
+>
+> Explain VIVA in one paragraph.
+>
+> Anyone reading should immediately understand the product.
+>
+> --------------------------------------------------
+>
+> # 4. How VIVA Works
+>
+> Use a clean ASCII diagram.
+>
+> Example:
+>
+> Candidate
+>
+> ↓
+>
+> Profile Analysis
+>
+> ↓
+>
+> Belief State
+>
+> ↓
+>
+> Director
+>
+> ↓
+>
+> Adaptive Question
+>
+> ↓
+>
+> Grader
+>
+> ↓
+>
+> Evidence
+>
+> ↓
+>
+> Engineering Report
+>
+> Every block should have a one-line explanation.
+>
+> --------------------------------------------------
+>
+> # 5. What Makes VIVA Different
+>
+> Create a comparison table.
+>
+> Columns:
+>
+> Generic AI Interview Tool
+>
+> VIVA
+>
+> Compare:
+>
+> Question Selection
+>
+> Difficulty
+>
+> Follow-ups
+>
+> Hints
+>
+> Evidence
+>
+> Feedback
+>
+> Report
+>
+> Grounding
+>
+> Curriculum Awareness
+>
+> Determinism
+>
+> Explain each row in one short sentence.
+>
+> --------------------------------------------------
+>
+> # 6. Core Innovations
+>
+> Explain only the biggest innovations:
+>
+> Belief State
+>
+> Grounded Evaluation
+>
+> Evidence Chain
+>
+> Adaptive Director
+>
+> Engineering Assessment Report
+>
+> Each should have:
+>
+> What it is
+>
+> Why it matters
+>
+> How it improves interviews
+>
+> --------------------------------------------------
+>
+> # 7. Demo Flow
+>
+> Explain exactly what a judge will experience.
+>
+> Landing
+>
+> ↓
+>
+> Candidate
+>
+> ↓
+>
+> Interview
+>
+> ↓
+>
+> Adaptive Questions
+>
+> ↓
+>
+> Evidence
+>
+> ↓
+>
+> Engineering Report
+>
+> Use no more than 12 lines.
+>
+> --------------------------------------------------
+>
+> # 8. System Architecture
+>
+> Beautiful architecture diagram.
+>
+> Backend
+>
+> ↓
+>
+> Agents
+>
+> ↓
+>
+> Belief State
+>
+> ↓
+>
+> Grounding Layer
+>
+> ↓
+>
+> SQLite
+>
+> ↓
+>
+> Frontend
+>
+> Explain every component in one sentence.
+>
+> --------------------------------------------------
+>
+> # 9. Engineering Highlights
+>
+> Keep this section visual.
+>
+> Examples:
+>
+> ✅ 89 Backend Tests
+>
+> ✅ 9 Frontend Tests
+>
+> ✅ Session Recovery
+>
+> ✅ Shareable Reports
+>
+> ✅ Deterministic Evaluation
+>
+> ✅ Offline Demo
+>
+> ✅ FastAPI
+>
+> ✅ React + Tailwind
+>
+> ✅ SQLite
+>
+> --------------------------------------------------
+>
+> # 10. Why Judges Should Care
+>
+> This is the most important section.
+>
+> Explain why this project is memorable.
+>
+> Do NOT say:
+>
+> "Our project is innovative."
+>
+> Instead explain:
+>
+> Why a hiring manager would actually use this.
+>
+> Why a bootcamp would actually buy this.
+>
+> Why learners benefit.
+>
+> Why deterministic evidence matters.
+>
+> --------------------------------------------------
+>
+> # 11. Quick Start
+>
+> Keep it extremely short.
+>
+> Clone
+>
+> Install
+>
+> Run
+>
+> Done.
+>
+> --------------------------------------------------
+>
+> # 12. Repository Structure
+>
+> One diagram only.
+>
+> --------------------------------------------------
+>
+> # 13. Future Scope
+>
+> Maximum 5 bullets.
+>
+> --------------------------------------------------
+>
+> # WRITING STYLE
+>
+> Imagine the reader has only 90 seconds.
+>
+> Every section must be skimmable.
+>
+> No giant paragraphs.
+>
+> No marketing fluff.
+>
+> No AI buzzwords.
+>
+> No repeated content.
+>
+> No unnecessary implementation details.
+>
+> Every sentence should increase judge confidence.
+>
+> --------------------------------------------------
+>
+> MOST IMPORTANT
+>
+> The README should make the judge think:
+>
+> "This is not another AI chatbot.
+>
+> This is a real AI engineering product."
+>
+> Update README.md only.
+>
+> Do not modify any application code.
+>
+> After completion update PROMPTS.md with the exact prompt.  and on the top of the readme add this ## Why VIVA?
+>
+> | Generic AI Interview | VIVA |
+> |----------------------|------|
+> | Same questions for everyone | Questions adapt to your learning journey |
+> | Generic feedback | Evidence-backed engineering assessment |
+> | Static interview | Belief-state driven interview |
+> | Opinion-based scoring | Curriculum-grounded evaluation |
+> | Chat ends with a score | Ends with a shareable engineering report |
+
+**AI Response Summary:** Rewrote README.md from scratch in the judge-optimized 13-section structure, with the builder's "Why VIVA?" comparison table at the very top. Every requested section in exact order: Hero (name, tagline, value prop, screenshot placeholder, ❌/✅ differentiator table), The Problem (plain English, <8 lines), Our Solution (one paragraph), How VIVA Works (8-block ASCII pipeline with one-line explanations), What Makes VIVA Different (10-row comparison table: question selection, difficulty, follow-ups, hints, evidence, feedback, report, grounding, curriculum awareness, determinism), Core Innovations (5 innovations × what/why/how it improves interviews), Demo Flow (6-step diagram + resume/share/print notes, ≤12 lines), System Architecture (FastAPI agents/belief/grounding/SQLite + React SPA diagram, one sentence per component), Engineering Highlights (✅ visual list incl. 70 kB gzip and 1–6 ms latency), Why Judges Should Care (hiring manager / bootcamp / learner / determinism angles + memorized differentiator callout), Quick Start (clone → `./run.sh` → done, with a collapsible manual/real-LLM details block), Repository Structure (single tree diagram), Future Scope (exactly 5 bullets). No application code touched.
+
+**Files Modified:** `README.md` (rewrite), `PROMPTS.md` (this entry).
+
+**Commands Executed:** none beyond the file writes (documentation-only change).
+
+**Tests Run:** none needed — no application code modified (README + PROMPTS.md only).
+
+**Build Result:** n/a.
+
+**Git Commit Hash:** (committed with this entry).
+
+**Git Push Status:** Pushed to `origin/main`.
+
+**Outcome:** README now reads as a 90-second judge pitch — skimmable, visual, evidence-first — while keeping all prior submission-critical content (Quick Start, run.sh, real-LLM checklist, AI-usage log link points) intact in compressed form.
