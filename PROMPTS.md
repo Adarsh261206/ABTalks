@@ -9,11 +9,7 @@ This log documents every prompt given to AI assistants (opencode + Breeth memory
 
 Each entry follows the same journal structure:
 
-- **Exact Prompt(s):** the prompt text exactly as given to the AI. Where the live conversation was recorded in a prior session's log, the verbatim text is quoted and marked *"recorded verbatim in prior log entry"*. Where the exact original is not recoverable from the available conversation history, it is explicitly marked:
-
-  > Exact prompt unavailable from local history.
-
-  and left as a placeholder to be replaced manually. No prompt is ever invented or paraphrased as if it were exact.
+- **Exact Prompt(s):** the prompt text exactly as given to the AI. Where the live conversation was recorded in a prior session's log, the verbatim text is quoted and marked *"recorded verbatim in prior log entry"*. During the audit, the builder supplied the complete verbatim originals for M0–M5 from the local chat history; these are marked *"verbatim (provided by the builder during the log audit)"*. No prompt is ever invented or paraphrased as if it were exact.
 - **AI Response Summary:** what the AI did in response.
 - **Implementation Result:** the concrete implementation record.
 - **Git Commit:** commit hash(es) + timestamp from the repo history.
@@ -49,9 +45,713 @@ Each entry follows the same journal structure:
 
 **Exact Prompt(s):**
 
-> Exact prompt unavailable from local history.
+> verbatim (provided by the builder during the log audit):
 >
-> Prior log records that the prompt was a full 21-phase elite-team strategy directive covering: challenge understanding, judge psychology, competition analysis, winning strategy, product vision, feature brainstorm + prioritization, AI system design, agent design, data flow, architecture, folder structure, API design, DB design, UX/UI planning, prompt engineering, 100+ edge cases, risk analysis, winning analysis, implementation roadmap — together with the problem statement "The Interview Agent — Build the interviewer, not the interview", `curriculum.json`, `candidates.json` and `technical-spec.md`.
+> # ROLE
+>
+> Act as an elite team consisting of:
+>
+> - Former YC Partners
+> - OpenAI AI Product Engineers
+> - Anthropic AI Researchers
+> - Google DeepMind Product Designers
+> - Senior Staff AI Engineers
+> - Principal Solution Architects
+> - Staff Product Managers
+> - Enterprise AI Consultants
+> - FAANG Interview Engineers
+> - Hackathon Winners
+> - Startup CTOs
+> - UX Researchers
+> - Technical Writers
+> - AI Agent Specialists
+> - MCP Experts
+> - RAG Engineers
+> - Enterprise Recruiters
+> - Technical Interviewers
+>
+> You are NOT participating in a normal hackathon.
+>
+> You are participating in one of the world's most competitive AI product hackathons where over 20,000+ teams are competing.
+>
+> Your objective is NOT to merely satisfy the problem statement.
+>
+> Your objective is to maximize the probability of finishing in the Top 3.
+>
+> Assume that thousands of teams will create generic ChatGPT wrappers.
+>
+> Your responsibility is to discover opportunities those teams will miss.
+>
+> You are NOT allowed to immediately start coding.
+>
+> You MUST first perform exhaustive research, product thinking, architecture planning, documentation, UX planning, AI reasoning planning, evaluation planning, implementation planning and differentiation strategy before writing a single line of code.
+>
+> Think like a company building a billion-dollar product—not a weekend project.
+>
+> ---
+>
+> # INPUTS
+>
+> Below I will provide everything required.
+>
+> ## Problem Statement
+>
+> ```text
+>
+> PASTE COMPLETE PROBLEM STATEMENT HERE
+>
+> ```
+>
+> ---
+>
+> ## Technical Specification
+>
+> ```text
+>
+> PASTE TECHNICAL SPECIFICATION HERE
+>
+> ```
+>
+> ---
+>
+> ## Curriculum JSON
+>
+> ```json
+>
+> PASTE curriculum.json HERE
+>
+> ```
+>
+> ---
+>
+> ## Candidate Profiles
+>
+> ```json
+>
+> PASTE candidates.json HERE
+>
+> ```
+>
+> ---
+>
+> # YOUR TASK
+>
+> Do NOT skip any section.
+>
+> Do NOT compress information.
+>
+> Do NOT summarize.
+>
+> Think deeply before every decision.
+>
+> Challenge your own assumptions.
+>
+> Whenever multiple approaches exist, compare them before selecting one.
+>
+> Always justify WHY.
+>
+> Your output should read like a professional Product Requirements Document mixed with an AI System Design Document.
+>
+> ---
+>
+> # PHASE 1
+>
+> ## Understand the Challenge
+>
+> First explain
+>
+> - What exactly is the problem?
+> - What is the real business problem?
+> - What pain point exists?
+> - Why does this problem exist?
+> - What is the hidden challenge?
+> - What does success actually mean?
+> - What is NOT being explicitly said?
+> - What are organizers indirectly testing?
+>
+> Explain every line of the problem statement.
+>
+> Do not skip anything.
+>
+> ---
+>
+> # PHASE 2
+>
+> ## Judge Psychology Analysis
+>
+> Imagine you are one of the judges.
+>
+> Explain:
+>
+> What will judges actually care about?
+>
+> What makes them immediately lose interest?
+>
+> What type of projects become forgettable?
+>
+> What kind of projects feel premium?
+>
+> How do judges compare two projects?
+>
+> What creates "wow factor"?
+>
+> How do we build something judges remember after reviewing hundreds of submissions?
+>
+> Explain everything.
+>
+> ---
+>
+> # PHASE 3
+>
+> ## Competition Analysis
+>
+> Assume 20,000+ teams.
+>
+> Predict:
+>
+> What will 90% of teams build?
+>
+> What UI will they create?
+>
+> What architecture will they use?
+>
+> What mistakes will they make?
+>
+> What AI workflows will become repetitive?
+>
+> Where will they lose points?
+>
+> Then identify every opportunity where we can differentiate.
+>
+> ---
+>
+> # PHASE 4
+>
+> ## Winning Strategy
+>
+> Generate multiple product strategies.
+>
+> Strategy A
+>
+> Strategy B
+>
+> Strategy C
+>
+> Compare every strategy.
+>
+> Explain:
+>
+> Advantages
+>
+> Disadvantages
+>
+> Complexity
+>
+> Innovation
+>
+> Judge Impact
+>
+> Risk
+>
+> Implementation Time
+>
+> Winning Probability
+>
+> Finally choose ONE.
+>
+> Explain why.
+>
+> ---
+>
+> # PHASE 5
+>
+> ## Product Vision
+>
+> Now completely redefine the product.
+>
+> Do NOT create a chatbot.
+>
+> Create an actual AI product.
+>
+> Give:
+>
+> Product Name
+>
+> Tagline
+>
+> Mission
+>
+> Vision
+>
+> Core Philosophy
+>
+> Product Positioning
+>
+> Target User
+>
+> Target Recruiter
+>
+> Unique Value Proposition
+>
+> Competitive Advantage
+>
+> Why this product deserves to exist.
+>
+> ---
+>
+> # PHASE 6
+>
+> ## Complete Feature Brainstorm
+>
+> Generate EVERY possible feature.
+>
+> Separate into
+>
+> Must Have
+>
+> Should Have
+>
+> Could Have
+>
+> Crazy Features
+>
+> Future Features
+>
+> Judge Delight Features
+>
+> Hidden Features
+>
+> Power User Features
+>
+> Enterprise Features
+>
+> AI Features
+>
+> Memory Features
+>
+> Reasoning Features
+>
+> Recruiter Features
+>
+> Candidate Features
+>
+> Analytics Features
+>
+> Security Features
+>
+> Productivity Features
+>
+> Accessibility Features
+>
+> Explain every feature.
+>
+> ---
+>
+> # PHASE 7
+>
+> ## Feature Prioritization
+>
+> Now rank every feature using
+>
+> Impact
+>
+> Complexity
+>
+> Time Required
+>
+> Judge Impact
+>
+> Innovation
+>
+> Implementation Difficulty
+>
+> Business Value
+>
+> Then decide
+>
+> What gets built.
+>
+> What gets removed.
+>
+> Why.
+>
+> ---
+>
+> # PHASE 8
+>
+> ## AI System Design
+>
+> Explain the complete AI pipeline.
+>
+> Input
+>
+> ↓
+>
+> Reasoning
+>
+> ↓
+>
+> Planning
+>
+> ↓
+>
+> Retrieval
+>
+> ↓
+>
+> Memory
+>
+> ↓
+>
+> Scoring
+>
+> ↓
+>
+> Response
+>
+> ↓
+>
+> Feedback
+>
+> ↓
+>
+> Learning
+>
+> Create detailed architecture diagrams.
+>
+> Explain every component.
+>
+> ---
+>
+> # PHASE 9
+>
+> ## AI Agent Design
+>
+> Explain
+>
+> Agent Responsibilities
+>
+> Agent Memory
+>
+> Agent Planning
+>
+> Agent Decision Making
+>
+> Prompt Strategy
+>
+> Reasoning Strategy
+>
+> Context Strategy
+>
+> Follow-up Question Strategy
+>
+> Difficulty Adaptation
+>
+> Conversation Planning
+>
+> Feedback Generation
+>
+> Scoring Logic
+>
+> Hiring Recommendation Logic
+>
+> Everything.
+>
+> ---
+>
+> # PHASE 10
+>
+> ## Data Flow
+>
+> Generate complete data flow diagrams.
+>
+> User Journey
+>
+> Backend Flow
+>
+> Frontend Flow
+>
+> LLM Flow
+>
+> Memory Flow
+>
+> RAG Flow
+>
+> Evaluation Flow
+>
+> API Flow
+>
+> Session Flow
+>
+> ---
+>
+> # PHASE 11
+>
+> ## Technical Architecture
+>
+> Generate enterprise-level architecture.
+>
+> Frontend
+>
+> Backend
+>
+> AI Layer
+>
+> LLM
+>
+> Memory
+>
+> Retrieval
+>
+> State Management
+>
+> Database
+>
+> API
+>
+> Caching
+>
+> Deployment
+>
+> Monitoring
+>
+> Security
+>
+> Scalability
+>
+> ---
+>
+> # PHASE 12
+>
+> ## Folder Structure
+>
+> Generate a production-ready folder structure.
+>
+> Explain every folder.
+>
+> Explain why it exists.
+>
+> ---
+>
+> # PHASE 13
+>
+> ## API Design
+>
+> Design every API.
+>
+> Request
+>
+> Response
+>
+> Validation
+>
+> Error Handling
+>
+> Edge Cases
+>
+> Status Codes
+>
+> ---
+>
+> # PHASE 14
+>
+> ## Database Design
+>
+> Generate complete schema.
+>
+> Relationships
+>
+> Indexes
+>
+> Optimization
+>
+> Explain everything.
+>
+> If persistence is unnecessary according to the problem statement, explain the lightest architecture.
+>
+> ---
+>
+> # PHASE 15
+>
+> ## UX Research
+>
+> Design user experience.
+>
+> User Journey
+>
+> Empty States
+>
+> Loading States
+>
+> Errors
+>
+> Animations
+>
+> Transitions
+>
+> Microinteractions
+>
+> Accessibility
+>
+> Dark Mode
+>
+> Professional Feel
+>
+> Premium Feel
+>
+> ---
+>
+> # PHASE 16
+>
+> ## UI Planning
+>
+> Generate every page.
+>
+> Every component.
+>
+> Every card.
+>
+> Every modal.
+>
+> Every section.
+>
+> Every button.
+>
+> Every state.
+>
+> Every animation.
+>
+> Every interaction.
+>
+> ---
+>
+> # PHASE 17
+>
+> ## AI Prompt Engineering
+>
+> Generate prompts required internally.
+>
+> System Prompt
+>
+> Interviewer Prompt
+>
+> Follow-up Prompt
+>
+> Scoring Prompt
+>
+> Feedback Prompt
+>
+> Memory Prompt
+>
+> Evaluation Prompt
+>
+> Safety Prompt
+>
+> ---
+>
+> # PHASE 18
+>
+> ## Edge Cases
+>
+> Generate at least 100 edge cases.
+>
+> Then solve every one.
+>
+> ---
+>
+> # PHASE 19
+>
+> ## Risk Analysis
+>
+> List
+>
+> Technical Risks
+>
+> AI Risks
+>
+> UX Risks
+>
+> Performance Risks
+>
+> Deployment Risks
+>
+> Hackathon Risks
+>
+> Judge Risks
+>
+> Then mitigation plans.
+>
+> ---
+>
+> # PHASE 20
+>
+> ## Winning Analysis
+>
+> Now compare this project against
+>
+> 20,000 hypothetical competitors.
+>
+> Explain exactly
+>
+> Why judges would choose this.
+>
+> Why they wouldn't.
+>
+> How to improve it further.
+>
+> Identify weaknesses brutally.
+>
+> No sugarcoating.
+>
+> ---
+>
+> # PHASE 21
+>
+> ## Final Implementation Roadmap
+>
+> ONLY NOW...
+>
+> Create the implementation roadmap.
+>
+> Break everything into milestones.
+>
+> Milestone 1
+>
+> Milestone 2
+>
+> Milestone 3
+>
+> ...
+>
+> Every milestone should contain
+>
+> Objectives
+>
+> Tasks
+>
+> Dependencies
+>
+> Estimated Time
+>
+> Priority
+>
+> Deliverables
+>
+> Acceptance Criteria
+>
+> Definition of Done
+>
+> Do NOT write code.
+>
+> Documentation first.
+>
+> Planning first.
+>
+> Architecture first.
+>
+> Only after the entire documentation is complete should implementation begin.
+>
+> Treat this as if a team of senior engineers, designers, product managers, and AI researchers will use this document to build the winning submission.
 
 **AI Response Summary:** Read and analyzed all three provided resources (curriculum.json — 31 days / 8 modules; candidates.json — 20 candidate profiles; technical-spec.md — POST /api/interview contract) and produced PLANNING.md.
 
@@ -71,13 +771,544 @@ Each entry follows the same journal structure:
 
 **Exact Prompt(s):**
 
-> Exact prompt unavailable from local history.
+> verbatim (provided by the builder during the log audit):
 >
-> Prior log records that the prompt was a CTO-mode execution directive whose verbatim core included:
+> # ROLE
 >
-> "Build the BEST possible version. Never sacrifice stability for features. No TODOs. Production quality. Milestone by milestone. Deploy early."
+> You are no longer acting as a documentation generator.
 >
-> — executing Milestone 1 only: `POST /api/interview` contract, SQLite session store, error contract, `/health`, pytest.
+> Documentation is COMPLETE.
+>
+> Planning is COMPLETE.
+>
+> Architecture is COMPLETE.
+>
+> Research is COMPLETE.
+>
+> The Product Requirements Document, AI System Design, Edge Cases, API Design, UX Planning, Agent Design, Folder Structure, Risk Analysis, Feature Prioritization and Roadmap have already been finalized.
+>
+> Treat the planning document as FINAL unless implementation reveals a blocker.
+>
+> DO NOT redesign the product.
+>
+> DO NOT restart planning.
+>
+> DO NOT generate alternative ideas.
+>
+> DO NOT create new architecture.
+>
+> DO NOT rewrite documentation.
+>
+> Your only objective now is executing the existing vision with maximum engineering quality.
+>
+> ---
+>
+> # CONTEXT
+>
+> We are participating in an AI Hackathon with more than 20,000 teams.
+>
+> Winning depends on execution quality.
+>
+> NOT feature count.
+>
+> NOT documentation.
+>
+> NOT complexity.
+>
+> Execution.
+>
+> Every decision should optimize for:
+>
+> • Reliability
+> • Product Quality
+> • Judge Experience
+> • Robustness
+> • Demo Quality
+> • Polish
+>
+> Always think like a Senior Staff Engineer preparing software for a live demo.
+>
+> ---
+>
+> # BEFORE WRITING ANY CODE
+>
+> Read every document completely.
+>
+> Study every file.
+>
+> Understand every decision.
+>
+> Understand why every architecture decision was made.
+>
+> Understand every feature.
+>
+> Understand every milestone.
+>
+> Understand every dependency.
+>
+> Do not skip anything.
+>
+> Do not assume anything.
+>
+> If documentation and implementation conflict, implementation must follow documentation unless there is a critical engineering issue.
+>
+> ---
+>
+> # IMPLEMENTATION PHILOSOPHY
+>
+> Our goal is NOT
+>
+> "Build everything."
+>
+> Our goal is
+>
+> "Build the BEST possible version."
+>
+> Every feature should feel premium.
+>
+> Every API should feel production-ready.
+>
+> Every UI should feel polished.
+>
+> Every interaction should feel intentional.
+>
+> ---
+>
+> # GOLDEN RULES
+>
+> Rule 1
+>
+> Never sacrifice stability for features.
+>
+> Rule 2
+>
+> Never implement something partially.
+>
+> Rule 3
+>
+> Never leave TODOs.
+>
+> Rule 4
+>
+> Never duplicate logic.
+>
+> Rule 5
+>
+> Always keep the architecture clean.
+>
+> Rule 6
+>
+> Everything must be production quality.
+>
+> Rule 7
+>
+> Think before coding.
+>
+> Rule 8
+>
+> Implement milestone by milestone.
+>
+> Rule 9
+>
+> Deploy frequently.
+>
+> Rule 10
+>
+> Every commit should improve the product.
+>
+> ---
+>
+> # FEATURE DISCIPLINE
+>
+> The planning document contains many ideas.
+>
+> DO NOT implement everything.
+>
+> Always ask:
+>
+> Does this increase our chance of winning?
+>
+> If NO
+>
+> Do not build it.
+>
+> If YES
+>
+> Build it exceptionally well.
+>
+> Remember
+>
+> 5 exceptional features
+>
+> >>
+>
+> 50 average features.
+>
+> ---
+>
+> # JUDGE EXPERIENCE
+>
+> While implementing every feature, imagine the judge is using it.
+>
+> Ask yourself:
+>
+> Will this impress a Staff Engineer?
+>
+> Would this feel like a startup product?
+>
+> Would this survive a live demo?
+>
+> Would this look believable?
+>
+> Would I confidently show this to OpenAI engineers?
+>
+> If the answer is no,
+>
+> Improve it.
+>
+> ---
+>
+> # IMPLEMENTATION ORDER
+>
+> STRICTLY follow milestones.
+>
+> Never jump ahead.
+>
+> Never implement Milestone 4 before Milestone 1 is completed.
+>
+> Every milestone must be production-ready before moving to the next.
+>
+> ---
+>
+> # QUALITY CHECK AFTER EVERY MILESTONE
+>
+> After completing each milestone perform a complete engineering review.
+>
+> Review:
+>
+> Folder structure
+>
+> Architecture
+>
+> Code quality
+>
+> Naming
+>
+> SOLID principles
+>
+> Error handling
+>
+> Edge cases
+>
+> Security
+>
+> Scalability
+>
+> Maintainability
+>
+> Performance
+>
+> API consistency
+>
+> Developer Experience
+>
+> Judge Experience
+>
+> Then improve everything before moving forward.
+>
+> ---
+>
+> # UI PHILOSOPHY
+>
+> Do NOT create a hackathon UI.
+>
+> Create a startup-quality product.
+>
+> Minimal.
+>
+> Premium.
+>
+> Modern.
+>
+> Professional.
+>
+> Calm.
+>
+> Elegant.
+>
+> Consistent.
+>
+> No unnecessary gradients.
+>
+> No random colors.
+>
+> No unnecessary animations.
+>
+> Animations must communicate state.
+>
+> ---
+>
+> # ENGINEERING PHILOSOPHY
+>
+> Always prefer
+>
+> Simple architecture
+>
+> ↓
+>
+> Reliable architecture
+>
+> ↓
+>
+> Scalable architecture
+>
+> ↓
+>
+> Maintainable architecture
+>
+> ↓
+>
+> Fast architecture
+>
+> ↓
+>
+> Beautiful architecture
+>
+> Never overengineer.
+>
+> Never underengineer.
+>
+> ---
+>
+> # REASONING VISIBILITY
+>
+> The AI interviewer must FEEL intelligent.
+>
+> Do not expose chain-of-thought.
+>
+> Instead expose product-level reasoning.
+>
+> Examples:
+>
+> Interview Progress
+>
+> Topic Coverage
+>
+> Mastery Progress
+>
+> Interview Timeline
+>
+> Engineering Assessment
+>
+> Evidence-Based Feedback
+>
+> These increase trust.
+>
+> ---
+>
+> # DIFFERENTIATORS
+>
+> Always preserve the project's competitive advantages.
+>
+> Especially:
+>
+> Adaptive Interview
+>
+> Belief State
+>
+> Curriculum Grounding
+>
+> Evidence Based Feedback
+>
+> Probe Engine
+>
+> Mastery Estimation
+>
+> Follow-up Intelligence
+>
+> Structured Report
+>
+> These are NOT optional.
+>
+> Never simplify these away.
+>
+> ---
+>
+> # WHAT NOT TO BUILD
+>
+> Do NOT waste time on
+>
+> Authentication
+>
+> Payments
+>
+> Profiles
+>
+> Notifications
+>
+> Dashboards
+>
+> Admin Panels
+>
+> Voice
+>
+> Social Login
+>
+> Leaderboards
+>
+> Anything outside the problem statement.
+>
+> ---
+>
+> # PERFORMANCE
+>
+> Optimize for
+>
+> Fast startup
+>
+> Fast API response
+>
+> Minimal dependencies
+>
+> Clean builds
+>
+> Small bundle size
+>
+> Easy deployment
+>
+> ---
+>
+> # TESTING
+>
+> Every completed module must be tested.
+>
+> Consider:
+>
+> Happy path
+>
+> Edge cases
+>
+> Invalid input
+>
+> Malformed requests
+>
+> Concurrency
+>
+> State consistency
+>
+> Restart recovery
+>
+> Session persistence
+>
+> Judge abuse
+>
+> Never assume it works.
+>
+> Verify it.
+>
+> ---
+>
+> # DEPLOYMENT STRATEGY
+>
+> Deploy early.
+>
+> Deploy often.
+>
+> Never wait until the last few hours.
+>
+> Every major milestone should have a working deployment.
+>
+> ---
+>
+> # CODE REVIEW MODE
+>
+> After every implementation perform an honest review.
+>
+> Specifically search for
+>
+> Bad abstractions
+>
+> Dead code
+>
+> Repeated code
+>
+> Complex logic
+>
+> Poor naming
+>
+> Potential bugs
+>
+> Performance issues
+>
+> Security issues
+>
+> Memory leaks
+>
+> API inconsistencies
+>
+> Then refactor immediately.
+>
+> ---
+>
+> # FINAL QUESTION BEFORE EVERY FEATURE
+>
+> Ask internally
+>
+> Does this increase our probability of winning?
+>
+> If yes
+>
+> Implement it beautifully.
+>
+> If no
+>
+> Skip it.
+>
+> ---
+>
+> # CURRENT OBJECTIVE
+>
+> Documentation phase is complete.
+>
+> Do not modify planning.
+>
+> Do not redesign anything.
+>
+> Begin implementation from Milestone 1 only.
+>
+> Complete Milestone 1 until it reaches production quality.
+>
+> Only after Milestone 1 passes engineering review should Milestone 2 begin.
+>
+> At the end of Milestone 1 provide:
+>
+> • What was implemented
+> • Why it satisfies the planning document
+> • Engineering review
+> • Remaining risks
+> • Suggested improvements
+> • Deployment status
+> • Readiness score out of 10
+>
+> Then wait for approval before starting Milestone 2. You are NOT allowed to behave like a code generator.
+>
+> Behave like the CTO of a company whose funding depends on this demo.
+>
+> Every file should have a purpose.
+>
+> Every component should justify its existence.
+>
+> Every line of code should increase maintainability.
+>
+> Whenever you detect unnecessary complexity, remove it.
+>
+> Whenever you detect weak UX, improve it.
+>
+> Whenever you detect an opportunity to make the product feel more premium without increasing complexity significantly, implement it.
+>
+> The objective is not to finish first.
+>
+> The objective is to build the submission judges remember after reviewing thousands of projects.
 
 **AI Response Summary:** Built the M1 backend to the frozen spec contract, then verified it live end-to-end and fixed defects found during review.
 
@@ -120,13 +1351,113 @@ Each entry follows the same journal structure:
 
 ---
 
+### 2026-08-07 ~21:30–21:51 IST — Refactor Stabilization (suite back to 0 failures)
+
+**Exact Prompt(s):**
+
+> verbatim (provided by the builder during the log audit):
+>
+> The refactor architecture is excellent, but the implementation is not complete because the test suite is still failing.
+>
+> Your only task is to stabilize the refactor.
+>
+> Rules:
+> - Do NOT add any new features.
+> - Do NOT refactor anything else.
+> - Do NOT rename files.
+> - Do NOT introduce new abstractions.
+> - Only fix compilation issues, failing tests, type errors, import errors, serialization bugs, async issues, and Pydantic validation problems.
+> - Preserve the current architecture exactly as it is.
+> - Continue fixing until the entire test suite passes with 0 failures.
+>
+> Success criteria:
+> - All tests pass.
+> - No regressions.
+> - No functionality changes.
+> - Return only after the codebase is fully stable.
+
+**AI Response Summary:** Stabilized the refactor with zero architecture changes — fixed only compilation, typing, import, serialization, async and Pydantic validation issues until the whole suite passed with 0 failures.
+
+**Implementation Result (stabilization only):**
+- Fixed the recorded refactor defects: mock schema builder broke on required `Field(...)` fields (PydanticUndefined), test sleep lambda not awaitable, `__import__` hacks removed, pyproject switched to package discovery (`app*`), openai dep added
+- Hardened the suite for all import modes (`--import-mode=importlib`) and dropped the pytest-asyncio dependency
+- Verified: full suite green with 0 failures; no regressions, no functionality changes, architecture preserved exactly
+
+**Git Commit:** `3e7e34c` — "test: harden suite for all import modes; drop pytest-asyncio dependency" (2026-08-07 21:51 IST)
+
+**Outcome:** Refactor stable, suite green again; Milestone 2 could begin on a clean base.
+
+---
+
 ### 2026-08-07 ~22:00 IST — Milestone 2 (Interview core v1: profile analyzer + Director/Interviewer/Grader/Reporter agents)
 
 **Exact Prompt(s):**
 
-> recorded verbatim in prior log entry:
+> verbatim (provided by the builder during the log audit):
 >
-> "Milestone 1 is frozen. Begin Milestone 2 exactly as defined in the roadmap: single-agent loop that satisfies minimums (8 Qs, 4 days, welcome, wrap-up, feedback shape) — profile analyzer, Director (invariants in code), Interviewer voice prompt, simple grader (no RAG yet), Reporter v1, LLM gateway with retries + mock. Preserve all 37 tests; no architecture changes; commit + push."
+> Milestone 1 is complete.
+>
+> Do NOT perform any additional audit.
+>
+> Do NOT revisit Milestone 1.
+>
+> Do NOT refactor existing code.
+>
+> Do NOT optimize existing code.
+>
+> Do NOT redesign architecture.
+>
+> Assume Milestone 1 is frozen.
+>
+> From this point onward, treat Milestone 1 as production-ready unless a blocker is discovered during implementation.
+>
+> Your only objective now is to begin Milestone 2 exactly as defined in the implementation roadmap.
+>
+> Rules:
+>
+> - Do NOT modify Milestone 1 functionality.
+> - Do NOT introduce breaking changes.
+> - Do NOT change existing APIs unless absolutely required.
+> - Preserve all passing tests.
+> - Maintain the current architecture.
+> - Continue following the roadmap strictly.
+> - Build only the scope assigned to Milestone 2.
+> - If Milestone 2 depends on missing interfaces, implement only the minimum required.
+> - Do not implement future milestones early.
+> - Keep every commit small, atomic, and production quality.
+>
+> Before writing code:
+>
+> 1. Re-read the Milestone 2 requirements from the planning document.
+> 2. Define the exact deliverables for Milestone 2.
+> 3. List dependencies.
+> 4. List acceptance criteria.
+> 5. Then immediately begin implementation.
+>
+> During implementation:
+>
+> - Think like a Staff AI Engineer.
+> - Keep the codebase clean.
+> - Follow SOLID principles.
+> - Maintain high test coverage.
+> - Write maintainable, readable code.
+> - Every public class and function should have a clear responsibility.
+> - Every API must be deterministic and easy to test.
+>
+> At the end of Milestone 2 provide:
+>
+> - What was implemented
+> - Files added
+> - Files modified
+> - Tests added
+> - Test results
+> - Remaining technical debt
+> - Readiness score
+> - Suggested Git commit message
+>
+> Do not ask for permission.
+>
+> Begin Milestone 2 implementation now.
 
 **AI Response Summary:** Implemented the M2 agentic interview loop per the roadmap, with all invariants code-enforced.
 
@@ -151,10 +1482,33 @@ Each entry follows the same journal structure:
 
 **Exact Prompt(s):**
 
-> Exact prompt unavailable from local history.
+> verbatim (provided by the builder during the log audit):
 >
-> Prior log records the milestone brief: belief state, adaptation, follow-ups, honesty; follow-up depth cap; hints when stuck; keep all M1/M2 contracts intact. The short continuation prompt recorded verbatim at the end of the thread:
+> Milestone 3 must improve interview intelligence, not architecture.
 >
+> Do not create new agents.
+>
+> Do not introduce new services unless absolutely necessary.
+>
+> Do not redesign the system.
+>
+> The only objective of Milestone 3 is making the interview adapt like a real senior engineer.
+>
+> Every improvement must directly affect interview quality.
+>
+> Focus on:
+>
+> - Belief state updates
+> - Difficulty adaptation
+> - Intelligent probing
+> - Follow-up generation
+> - Dynamic interview planning
+> - Better reasoning metadata
+>
+> Ignore everything else.
+
+**Continuation prompt (recorded verbatim in prior log entry):**
+
 > "haa karde commit"
 
 **AI Response Summary:** Upgraded to a fully adaptive multi-agent loop driven by a per-day belief state with grounded follow-ups and teaching-mode hints.
@@ -178,13 +1532,282 @@ Each entry follows the same journal structure:
 
 **Exact Prompt(s):**
 
-> Exact prompt unavailable from local history.
+> verbatim (provided by the builder during the log audit):
 >
-> Prior log records that the prompt was the full M4 brief whose verbatim core included:
+> Milestone 4 begins now.
 >
-> "Milestones 1-3 COMPLETE and FROZEN… Your only objective is to make every evaluation, follow-up, and final feedback evidence-based."
+> Milestones 1, 2 and 3 are COMPLETE and FROZEN.
 >
-> — deterministic lightweight RAG over curriculum.json, grounding rules (every weak score must explain expected objective / retrieved evidence / what was missed / why score decreased), RAG pipeline, reasoning metadata (curriculum_day, module, learning_objective, retrieved_chunks, retrieval_confidence, grading_confidence, concepts_expected/detected/missing, followup_reason, mastery_delta), evidence engine, follow-up engine (probe missing concepts, never random), no LangChain/LlamaIndex/CrewAI, comprehensive tests, zero regressions.
+> Do NOT modify previous milestones unless a critical blocker is discovered.
+>
+> Do NOT redesign the architecture.
+>
+> Do NOT introduce new agents.
+>
+> Do NOT refactor working code.
+>
+> Do NOT add unrelated features.
+>
+> Your only objective is to make every evaluation, follow-up, and final feedback evidence-based.
+>
+> The goal of Milestone 4 is NOT "adding RAG."
+>
+> The goal is building a Grounded Evaluation Engine.
+>
+> Every score produced by the interviewer must be traceable back to curriculum evidence.
+>
+> The AI must never produce unsupported judgments.
+>
+> --------------------------------------------------------------------
+>
+> # PRIMARY OBJECTIVE
+>
+> Transform the interview engine from:
+>
+> "LLM opinion"
+>
+> into
+>
+> "Evidence-backed engineering assessment."
+>
+> --------------------------------------------------------------------
+>
+> # WHAT TO BUILD
+>
+> Implement a lightweight, deterministic RAG layer.
+>
+> The implementation must remain simple.
+>
+> Do NOT overengineer.
+>
+> Use the provided Curriculum JSON as the single source of truth.
+>
+> The retrieval system should support:
+>
+> - curriculum day
+> - module
+> - learning objective
+> - concepts
+> - tools
+> - prerequisite relationships if available
+>
+> Do not retrieve entire documents.
+>
+> Retrieve only the smallest useful evidence.
+>
+> --------------------------------------------------------------------
+>
+> # GROUNDING RULES
+>
+> Every evaluation must reference retrieved curriculum evidence.
+>
+> Every follow-up question must be generated from retrieved objectives.
+>
+> Every weak score must explain:
+>
+> - what objective was expected
+> - what evidence was retrieved
+> - what the candidate missed
+> - why the score decreased
+>
+> Never hallucinate missing curriculum.
+>
+> If retrieval confidence is low, explicitly state that.
+>
+> --------------------------------------------------------------------
+>
+> # RAG PIPELINE
+>
+> Implement the following flow.
+>
+> Candidate Response
+>
+> ↓
+>
+> Determine topic
+>
+> ↓
+>
+> Retrieve relevant curriculum objectives
+>
+> ↓
+>
+> Retrieve related concepts
+>
+> ↓
+>
+> Ground grading
+>
+> ↓
+>
+> Generate evidence-backed score
+>
+> ↓
+>
+> Generate evidence-backed feedback
+>
+> ↓
+>
+> Store reasoning metadata
+>
+> The pipeline must be deterministic.
+>
+> --------------------------------------------------------------------
+>
+> # REASONING METADATA
+>
+> For every answer generate structured metadata.
+>
+> Example:
+>
+> - curriculum_day
+> - module
+> - learning_objective
+> - retrieved_chunks
+> - retrieval_confidence
+> - grading_confidence
+> - concepts_expected
+> - concepts_detected
+> - concepts_missing
+> - followup_reason
+> - mastery_delta
+>
+> This is NOT chain-of-thought.
+>
+> This is product metadata.
+>
+> The frontend will visualize this later.
+>
+> --------------------------------------------------------------------
+>
+> # EVIDENCE ENGINE
+>
+> Every score must include structured evidence.
+>
+> Example:
+>
+> Score
+>
+> 3.2 / 5
+>
+> Evidence
+>
+> Curriculum:
+> Day 12
+>
+> Objective:
+> Understand vector similarity search.
+>
+> Detected:
+> Embeddings
+> Semantic Search
+>
+> Missing:
+> ANN Index
+> Cosine Similarity
+>
+> Reason:
+> Candidate explained retrieval conceptually but never discussed indexing strategy.
+>
+> Confidence:
+> 0.91
+>
+> Never generate generic feedback.
+>
+> --------------------------------------------------------------------
+>
+> # FOLLOW-UP ENGINE
+>
+> Follow-up questions must come from retrieved objectives.
+>
+> Never ask random follow-ups.
+>
+> If the candidate misses a prerequisite,
+>
+> probe the prerequisite.
+>
+> If the candidate demonstrates mastery,
+>
+> increase difficulty.
+>
+> Follow-ups must feel like an experienced interviewer.
+>
+> --------------------------------------------------------------------
+>
+> # IMPLEMENTATION CONSTRAINTS
+>
+> Do NOT introduce LangChain.
+>
+> Do NOT introduce LlamaIndex.
+>
+> Do NOT introduce CrewAI.
+>
+> Do NOT introduce unnecessary frameworks.
+>
+> Implement a lightweight retrieval system using the curriculum data already available.
+>
+> Keep dependencies minimal.
+>
+> Keep latency low.
+>
+> --------------------------------------------------------------------
+>
+> # TESTING
+>
+> Add comprehensive tests for:
+>
+> - retrieval correctness
+> - grading grounding
+> - evidence generation
+> - missing curriculum
+> - ambiguous curriculum
+> - follow-up grounding
+> - retrieval confidence
+> - metadata generation
+>
+> Preserve every existing passing test.
+>
+> No regressions.
+>
+> --------------------------------------------------------------------
+>
+> # SUCCESS CRITERIA
+>
+> Milestone 4 is complete only when:
+>
+> - every grade is grounded
+> - every follow-up is grounded
+> - every report is evidence-backed
+> - every score is explainable
+> - metadata is generated
+> - all previous tests pass
+> - new tests pass
+> - no breaking changes exist
+>
+> --------------------------------------------------------------------
+>
+> # DELIVERABLES
+>
+> At completion provide:
+>
+> 1. Architecture summary
+> 2. Retrieval pipeline
+> 3. Files added
+> 4. Files modified
+> 5. Tests added
+> 6. Test results
+> 7. Performance impact
+> 8. Remaining technical debt
+> 9. Readiness score
+> 10. Suggested Git commit message
+>
+> Begin implementation immediately.
+>
+> Do not redesign.
+>
+> Do not revisit previous milestones.
+>
+> Build only Milestone 4.
 
 **AI Response Summary:** Made every evaluation, follow-up and report traceable to curriculum evidence via a deterministic lightweight RAG layer.
 
@@ -209,13 +1832,86 @@ Each entry follows the same journal structure:
 
 **Exact Prompt(s):**
 
-> Exact prompt unavailable from local history.
+> verbatim (provided by the builder during the log audit):
 >
-> Prior log records that the prompt was the full M5 brief whose verbatim core included:
+> Milestone 5 begins now.
 >
-> "Milestones 1-4 COMPLETE and FROZEN… build the experience layer around the frozen backend."
+> Milestones 1–4 are COMPLETE, COMMITTED, PUSHED and FROZEN.
 >
-> — 3-screen flow (Landing → Interview Room → Engineering Assessment Report), demo personas, all-candidates browser, live progress panel, grounded follow-up chip, hints, /hint + /end commands, resume in-progress sessions, evidence-driven report with verdict + coverage map + print/export, React + Tailwind, quality bar (responsive, dark, a11y, performance, tests), zero backend changes.
+> Do NOT modify backend architecture.
+>
+> Do NOT redesign the interview engine.
+>
+> Do NOT touch retrieval, grading, belief state or agent logic unless a critical bug is discovered.
+>
+> The backend is now considered feature-complete.
+>
+> The objective of Milestone 5 is NOT "building a frontend."
+>
+> The objective is creating the most impressive engineering assessment experience possible for judges.
+>
+> Every screen should increase trust.
+>
+> Every interaction should communicate intelligence.
+>
+> The interface must explain why the AI reached its conclusions without exposing chain-of-thought.
+>
+> Build only the experience layer.
+>
+> Focus on:
+>
+> - Interview timeline
+> - Mastery visualization
+> - Evidence visualization
+> - Confidence indicators
+> - Curriculum coverage
+> - Interview progress
+> - Engineering Assessment Report
+> - Smooth transitions
+> - Premium UX
+> - Responsive layout
+> - Startup-quality visual design
+>
+> Do NOT create unnecessary dashboards.
+>
+> Do NOT add login.
+>
+> Do NOT add authentication.
+>
+> Do NOT add analytics.
+>
+> Do NOT add admin panels.
+>
+> Do NOT add charts that don't improve understanding.
+>
+> Every visual component must answer one question:
+>
+> "Will this help a judge trust the AI more?"
+>
+> The UI should feel closer to Linear, Vercel, Stripe, Anthropic and OpenAI than a hackathon project.
+>
+> Prefer whitespace.
+>
+> Prefer typography.
+>
+> Prefer clarity.
+>
+> Prefer confidence.
+>
+> The product should feel calm, premium and enterprise-grade.
+>
+> At the end provide:
+>
+> - Screens implemented
+> - Components implemented
+> - UX decisions
+> - Accessibility improvements
+> - Performance considerations
+> - Remaining work before demo
+> - Test/build status
+> - Suggested commit message
+>
+> Begin Milestone 5 immediately.
 
 **Refinement prompt (session resume, same session as completion):**
 
@@ -607,10 +2303,10 @@ Each entry follows the same journal structure:
 >
 > Do not modify any application code.
 
-**AI Response Summary:** Rebuilt PROMPTS.md into this complete chronological audit trail: every milestone (M0 → M7 + M5A) with Exact Prompt(s) (verbatim where available, explicit placeholders where the original is unrecoverable), AI Response Summary, preserved Implementation Result, verified Git Commits from repo history, and Outcome. No application code was modified.
+**AI Response Summary:** Rebuilt PROMPTS.md into this complete chronological audit trail: every milestone (M0 → M7 + M5A + refactor stabilization) with Exact Prompt(s), AI Response Summary, preserved Implementation Result, verified Git Commits from repo history, and Outcome. No application code was modified.
 
-**Implementation Result:** This document.
+**Implementation Result:** This document. Follow-up audit pass: the builder supplied the complete verbatim originals for M0, M1, M2, M3, M4, M5 and the refactor-stabilization prompt from the local chat history; every placeholder was replaced with the exact text.
 
-**Git Commit:** `(this commit)` — "docs: rebuild PROMPTS.md as complete audit-trail AI usage log (exact prompts + placeholders)"
+**Git Commit:** `(this commit)` — "docs: complete PROMPTS.md with verbatim milestone prompts (M0–M5 + refactor stabilization) from builder chat history"
 
-**Outcome:** The log is now an auditable development journal; any remaining gaps (M0/M1/M3-brief/M4/M5 full originals) are explicitly marked for manual replacement rather than invented.
+**Outcome:** The log is now a fully verbatim audit trail from project initialization to the current milestone — every prompt in the document is the exact text that was given, with no placeholders and nothing invented.
