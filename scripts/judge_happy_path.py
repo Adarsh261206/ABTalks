@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """M8 Phase 2b — happy path: strong senior candidate (CAND-001) answering well."""
 import json
+import ssl
 import sys
 import urllib.request
 import urllib.error
+
+try:
+    import certifi
+
+    _SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+except Exception:
+    _SSL_CTX = None
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000"
 
@@ -16,7 +24,7 @@ def call(path, payload=None):
         headers={"Content-Type": "application/json"} if body else {},
     )
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=30, context=_SSL_CTX) as resp:
             return resp.status, json.loads(resp.read() or b"{}")
     except urllib.error.HTTPError as e:
         return e.code, json.loads(e.read() or b"{}")

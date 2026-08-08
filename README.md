@@ -18,6 +18,8 @@ An evidence-grounded AI interview system for a 31-day enterprise AI engineering 
 
 > 📸 Screenshot / demo GIF placeholder — Landing → Adaptive Interview → Engineering Report
 
+> 🔗 **Live demo: https://abtalks-production.up.railway.app** — no install, no login, pick a candidate and start an interview.
+
 | ❌ Generic AI Interview | ✅ Curriculum Grounded |
 |---|---|
 | ❌ Generic Feedback | ✅ Evidence-Based Engineering Assessment |

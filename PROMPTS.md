@@ -3760,3 +3760,32 @@ Deferred to Future Improvements (not bugs): stale-tab 409 after completing in an
 **Git Push Status:** Pushed to `origin/main`.
 
 **Outcome:** README now reads as a 90-second judge pitch — skimmable, visual, evidence-first — while keeping all prior submission-critical content (Quick Start, run.sh, real-LLM checklist, AI-usage log link points) intact in compressed form.
+
+---
+
+## M8 Post-Phase 8 — Live Deployment (Railway) + Verification
+
+### 2026-08-08 — Event log (no prompt; live-deployment follow-up at the builder's request)
+
+**AI Response Summary:** Deployed VIVA to Railway via the committed `Dockerfile` + `railway.toml`. First build failed (BUILD FAIL runtime — tsc TS2307 "Cannot find module '../data/candidates.json'"): root cause was the un-anchored `data/` pattern in `.gitignore`, which also matched `frontend/src/data/`, so the curriculum/candidates JSON were never tracked. Fixed with negation rules (`!frontend/src/data/`, `!frontend/src/data/*`), committed, and re-verified with an exact Railway-equivalent flow: fresh `git clone` → `docker build` → container smoke suite 18/18.
+
+**Live verification against `https://abtalks-production.up.railway.app`** (all checks run against the deployed instance):
+- `/health` 200 · `/` SPA 200 · deep links `/report` + `/interview` 200 (SPA fallback)
+- JS asset 200 (232,036 B) · `<title>` "VIVA — The interviewer that knows what you built"
+- Smoke suite **18/18** (start → weak answer → hint → grounded meta → /end → report → 409 replay → 413/422 contract)
+- Full happy-path interview live: 8 adaptive questions across days 7/8/10/12/16/22/23/31, transcript grounded
+- Tooling fix: `scripts/smoke_test.py` + `scripts/judge_happy_path.py` now use the `certifi` CA bundle (local Python lacked system CA certs — not a deployment issue)
+
+**Files Modified:** `.gitignore` (un-ignore `frontend/src/data/*`), `frontend/src/data/candidates.json` + `curriculum.json` (now tracked), `scripts/smoke_test.py` + `scripts/judge_happy_path.py` (certifi SSL context), `README.md` (live URL callout in hero), `PROMPTS.md` (this entry).
+
+**Commands Executed:** `git clone` fresh-clone simulation; `docker build`; container run + smoke; live smoke suite + happy-path run against `https://abtalks-production.up.railway.app`; `curl` SPA/deep-link/asset/title checks.
+
+**Tests Run:** backend 89/89 (exit 0); frontend 9/9; typecheck clean; build clean — all green; live instance 18/18 smoke + full interview.
+
+**Build Result:** Fresh-clone Docker build green; deployed container serving API + SPA.
+
+**Git Commit Hash:** (committed with this entry).
+
+**Git Push Status:** Pushed to `origin/main`.
+
+**Outcome:** VIVA is live at **https://abtalks-production.up.railway.app** and verified end to end from the outside (no tunnel, no localhost). Judges can open the product directly.
