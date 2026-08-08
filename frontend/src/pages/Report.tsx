@@ -102,9 +102,23 @@ export function Report() {
             variant="ghost"
             size="sm"
             onClick={() => {
-              void navigator.clipboard.writeText(window.location.href);
-              setCopied(true);
-              window.setTimeout(() => setCopied(false), 2000);
+              const url = window.location.href;
+              navigator.clipboard
+                .writeText(url)
+                .catch(() => {
+                  const field = document.createElement("textarea");
+                  field.value = url;
+                  field.style.position = "fixed";
+                  field.style.opacity = "0";
+                  document.body.appendChild(field);
+                  field.select();
+                  document.execCommand("copy");
+                  document.body.removeChild(field);
+                })
+                .finally(() => {
+                  setCopied(true);
+                  window.setTimeout(() => setCopied(false), 2000);
+                });
             }}
           >
             {copied ? "Copied" : "Copy link"}
