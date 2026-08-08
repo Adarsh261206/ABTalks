@@ -74,6 +74,12 @@ cd frontend && npm run build           # creates frontend/dist
 cd .. && uvicorn app.main:app          # SPA served from the same process at :8000
 ```
 
+Or one command (bootstraps venv, builds the frontend if needed, starts the server):
+
+```bash
+./run.sh                               # http://localhost:8000
+```
+
 ## Testing
 
 ```bash
