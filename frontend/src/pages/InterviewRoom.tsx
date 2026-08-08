@@ -436,7 +436,11 @@ export function InterviewRoom() {
               }}
               disabled={busy || done || !sessionId}
               placeholder={
-                sessionId ? "Answer the question — Enter to send, Shift+Enter for newline" : "Answer naturally…"
+                done
+                  ? "Interview complete — preparing your report…"
+                  : transcript.length === 0
+                    ? "Say hello to begin — Enter to send, Shift+Enter for newline"
+                    : "Answer the question — Enter to send, Shift+Enter for newline"
               }
               rows={2}
               maxLength={4000}
