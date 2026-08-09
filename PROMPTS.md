@@ -3927,7 +3927,7 @@ Deferred to Future Improvements (not bugs): stale-tab 409 after completing in an
 - `npm test -- --run` — **37/37 green**
 - `npm run build` — clean (72.50 kB gzip JS)
 
-**Git Commit Hash:** `COMMIT_HASH_PLACEHOLDER` (to be filled after commit).
+**Git Commit Hash:** `9ada758` — "M11: evidence-driven interview — no fixed length, per-day evidence state machine (verified/sufficient/needs_validation), 108 backend + 37 frontend tests green" (2026-08-09 13:20 IST)
 
 **Git Push Status:** Pending.
 
