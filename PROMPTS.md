@@ -3882,8 +3882,53 @@ Deferred to Future Improvements (not bugs): stale-tab 409 after completing in an
 
 **Build Result:** Frontend production build green; no backend or API changes made.
 
-**Git Commit Hash:** (uncommitted — pending the builder's review and commit).
+**Git Commit Hash:** `2708163` — "M10: Engineering Assessment Report — mastery & evidence visualization" (2026-08-09 ... IST)
 
-**Git Push Status:** Not pushed (nothing committed yet).
+**Git Push Status:** Pushed.
 
 **Outcome:** The report now makes the interview-pool logic visible: every completed curriculum day shows a mastery estimate, confidence with reason, evidence source, and an exact status badge that separates **observed** interview evidence from **estimated** mission-record/belief-state evidence — estimated mastery is never presented as verified. Empty coverage tiles were replaced with status-coded mastery cells. All 92 backend + 34 frontend tests, typecheck, and the production build remain green.
+
+---
+
+### 2026-08-09 ~13:20 IST — Milestone 11 (Evidence-Driven Interview: no fixed length)
+
+**Exact Prompt(s):**
+
+> [The M11 prompt was provided by the builder; see the start of this conversation.]
+
+**AI Response Summary:** Converted the interview from question-count-driven (8-question cap) to evidence-driven — every completed curriculum day is assessed until its per-day evidence record is terminal (verified / sufficient / needs_validation), and the run ends when all completed days are closed. Strong answers close a day with fewer questions; weak answers generate adaptive follow-ups until enough evidence exists.
+
+**Implementation Result (M11 — Evidence-Driven Interview):**
+
+- **New `app/core/evidence.py`** — deterministic per-day evidence state machine:
+  - `evaluate()` advances a day's record (answers, probes, hints, cleanliness) and returns the terminal state when the day closes or None while gathering more evidence.
+  - Rules: 4.5+ single clean answer → **verified**; 4.2+ average across ≥2 clean answers → **verified**; 3.5+ clean answer → **sufficient**; a hint given → **needs_validation**; probing budget exhausted (2 probes or 3 answers) → **needs_validation**.
+  - `day_closed` / `plan_complete` gating functions.
+  - PROBE_CAP=2, ANSWER_CAP=3, HINT_CAP=1, all configurable constants.
+- **`app/agents/director.py`** — `decide()` now closes terminal days and moves on (`wrap_up` when all done); `_next_day` returns the first open day not yet asked; `record_for` / `plan_complete` are imported from evidence.
+- **`app/core/agent_engine.py`** — every `process` call evaluates the graded answer against the evidence state machine, stamps the transcript entry with the terminal state when closing (`evidence` / `evidence_reason` meta fields, backward-compatible), and handles `wrap_up` actions. Removed the `len(state.asked) >= default_questions` cap from `force_wrap`. `_plan_size` returns `len(state.plan)`. `max_turns` raised from 50 → 300 (runaway guard only). `_ask_followup` and `_give_hint` increment per-day probe/hint counters in the evidence record.
+- **`app/agents/reporter.py`** — deterministic fallback now:
+  - `early` = any plan day not covered (not `n < default_questions`).
+  - Summary appends evidence-count breakdown (`Evidence: 2 verified, 0 sufficient, 0 needs validation`).
+  - Gaps include **needs_validation** days with their close reason, deduplicated against avg-based gaps.
+  - Next steps include revisit lines for NV days not already covered by avg-based steps.
+  - LLM prompt gains per-day evidence states line.
+- **`frontend/src/lib/mastery.ts`** — added `"sufficient"` status (◐ Sufficient Evidence), Medium confidence, trust engine's transcript stamp first, fallback to signal inference.
+- **`frontend/src/lib/interview.ts`** — `poolSizeFor()` now returns the full completed-day pool (no 8-cap). `DaySignal.evidence` / `evidenceReason` read transcript stamps. `analyzeTranscript` collects stamps.
+- **`frontend/src/pages/Report.tsx`** — headline metrics replaced with all 6 M11-required metrics (Completed / Interviewed / Estimated Curriculum Days, Total Questions Asked, Adaptive Follow-ups, Evidence Coverage). Legend includes Sufficient badge (violet tone). Coverage map tiles handle sufficient status. Confidence coloring for Medium.
+- **`tests/test_evidence.py`** — 16 new pure unit tests for the evidence state machine (single answer verified, sufficient, weak open, missing concepts, overclaim/vague flags, hint → NV, probe cap, answer cap, probe-then-close, plan_complete, empty plan, record_for persistence).
+- **Updated tests:** `test_mock_engine_full_interview_satisfies_minimums` now loops 40 and asserts all 10 completed days assessed with stamps; `test_mock_engine_short_pool_completes_after_pool_exhausted` loops 10; `test_engine_llm_path_uses_provider` has 11 chat replies + 10 grades + report (asserts `structured_calls == 11`); `test_engine_survives_full_provider_outage` asserts `len(state.asked) == len(state.plan)`. Plus new integration tests: `test_mock_engine_weak_answers_probe_then_close_needs_validation` and `test_mock_engine_strong_answer_closes_day_with_one_question`.
+
+**Files Changed:** `app/core/evidence.py` (new), `tests/test_evidence.py` (new), `app/agents/director.py`, `app/core/agent_engine.py`, `app/agents/reporter.py`, `app/config.py`, `.env.example`, `frontend/src/lib/mastery.ts`, `frontend/src/lib/interview.ts`, `frontend/src/lib/types.ts` (+TranscriptMeta evidence fields), `frontend/src/pages/Report.tsx`, `frontend/src/components/ui/Progress.tsx` (+violet tone), `frontend/src/components/ui/Badge.tsx` (+violet tone), `frontend/src/styles/index.css` (+violet color tokens), `frontend/src/lib/mastery.test.ts`, `frontend/src/lib/interview.test.ts`, `tests/test_agents.py`, `tests/test_grounding.py`.
+
+**Commands Executed:**
+- `python3 -m pytest tests -x -q` — **108/108 green**
+- `npm run typecheck` — clean
+- `npm test -- --run` — **37/37 green**
+- `npm run build` — clean (72.50 kB gzip JS)
+
+**Git Commit Hash:** `COMMIT_HASH_PLACEHOLDER` (to be filled after commit).
+
+**Git Push Status:** Pending.
+
+**Outcome:** The interview is now evidence-driven — every completed curriculum day is assessed until its per-day evidence record is terminal, and the run ends when all completed days are closed. Strong answers close a day in one question; weak answers probe twice then close as needs validation. All 108 backend + 37 frontend tests pass; typecheck and production build are clean. No API contract changes; evidence states are stamped into additive transcript meta for backward compatibility.

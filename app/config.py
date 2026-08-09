@@ -14,7 +14,10 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 60
     max_message_chars: int = 4000
     max_body_bytes: int = 1_048_576
-    max_turns: int = 50
+    # Runaway guard only (M11): the evidence state machine ends the run
+    # naturally once every completed day carries terminal evidence — a full
+    # 31-day pool takes ~90 turns at worst, so 300 stays out of the way.
+    max_turns: int = 300
     default_questions: int = 8
 
     llm_provider: str = "mock"

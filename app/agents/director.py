@@ -10,8 +10,11 @@ warm-up opens on the highest-prior completed day (easiest), then the
 remaining completed days struggle-first (low mastery / failed-then-passed /
 multiple-attempt), then recently completed days; difficulty comes from the
 belief state with seniority bias and recent-score escalation; question type
-follows the interview phase. `decide` picks the next action (new question /
-follow-up / hint) from the latest grade's signals. All decisions are
+follows the interview phase. M11: the interview is evidence-driven, not
+question-count-driven — there is no fixed length. `decide` closes a day
+once its evidence record is terminal (verified / sufficient /
+needs_validation) and reports `wrap_up` when every completed day is; open
+days keep gathering evidence through follow-up probes. All decisions are
 deterministic — no LLM call.
 """
 
@@ -19,6 +22,7 @@ from __future__ import annotations
 
 from app.core.belief import adjusted_difficulty, difficulty_for
 from app.core.curriculum import DayInfo
+from app.core.evidence import HINT_CAP, TERMINAL_STATES, day_closed, plan_complete, record_for
 from app.core.prompts import HINT_KEYWORDS, PHASES
 from app.core.profile import ProfileAnalysis, prior_for_day
 from app.domain.candidate import CandidateProfile
@@ -89,37 +93,40 @@ class Director:
         answer: str,
         use_llm: bool = False,
     ) -> str:
-        """Next action: 'ask_new' | 'follow_up' | 'hint'.
+        """Next action: 'ask_new' | 'follow_up' | 'hint' | 'wrap_up'.
 
-        Follow-ups fire on strong deterministic signals (terse answer,
-        overclaim, vagueness, detected mistakes) and — in LLM mode — on
-        shallow depth; never on a clean answer, so the 8-question minimum
-        is always met. Hints fire when the candidate is stuck ('I don't
-        know' / explicit hint request). Max 2 consecutive probes."""
-        meta = state.meta
-        if meta.get("consecutive_probes", 0) >= FOLLOWUP_DEPTH_CAP:
+        The day's evidence record has already been advanced by the engine:
+        a terminal state (verified / sufficient / needs_validation) means
+        the day is done — move to the next open day, or `wrap_up` when
+        every completed day is closed. An open day always gathers more
+        evidence: terse answers, overclaims, vagueness, and mistakes probe
+        with follow-ups; stuck/honest candidates get a hint (at most one
+        per day). Max 2 probes per day, enforced by the evidence machine."""
+        day = state.asked[-1].day if state.asked else None
+        if grade is None or day is None:
             return "ask_new"
+        record = record_for(state, day)
+        if record["state"] in TERMINAL_STATES:
+            return "wrap_up" if plan_complete(state) else "ask_new"
         normalized = answer.strip().lower()
         if normalized in TERSE_ANSWERS:
             return "follow_up"
         if normalized in HINT_KEYWORDS or _asks_for_hint(normalized):
-            return "hint"
-        if grade is None:
-            return "ask_new"
+            return "hint" if record["hints"] < HINT_CAP else "follow_up"
         if grade.honesty_bonus > 0 and grade.depth < HINT_AFTER_HONESTY_DEPTH:
-            return "hint"
+            return "hint" if record["hints"] < HINT_CAP else "follow_up"
         if grade.overclaim or grade.vague or grade.mistakes:
             return "follow_up"
         if use_llm and grade.weighted_score < FOLLOWUP_DEPTH_THRESHOLD:
             return "follow_up"
-        return "ask_new"
+        return "follow_up"
 
     # -- internals ----------------------------------------------------------
 
     def _next_day(self, state: InterviewState) -> int | None:
         asked_days = {q.day for q in state.asked}
         for day in (p["day"] for p in state.plan):
-            if day not in asked_days:
+            if day not in asked_days and not day_closed(state, day):
                 return day
         return None
 

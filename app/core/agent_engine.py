@@ -6,9 +6,15 @@ per turn: grade the last answer -> update the belief state -> the Director
 decides (new question / follow-up / hint) -> the Interviewer renders.
 Every agent degrades to a deterministic fallback offline, and the hard
 minimums (>= 8 questions, >= 4 days, valid feedback) hold in both modes.
-Interview rules (M3): questions come ONLY from the candidate's completed
-curriculum days — the run ends when that pool is exhausted, which is a
-complete run even below 8 questions.
+Interview rules (M3/M9): questions come ONLY from the candidate's completed
+curriculum days. M11: the interview is evidence-driven, not
+question-count-driven — every completed day is assessed until its evidence
+record is terminal (verified / sufficient / needs_validation), and the run
+ends when all completed days are closed. Strong answers close a day with
+fewer questions; weak answers generate follow-up probes until enough
+evidence exists. There is no fixed interview length: the completed-day pool
+sets the scope, the per-day evidence state machine sets the length, and
+max_turns is only a runaway guard.
 """
 
 from __future__ import annotations
@@ -23,6 +29,8 @@ from app.agents.reporter import Reporter
 from app.config import settings
 from app.core.belief import init_belief_state, update_belief
 from app.core.curriculum import DayInfo, load_curriculum
+from app.core.evidence import evaluate as evaluate_evidence
+from app.core.evidence import record_for
 from app.core.llm import LLMGateway
 from app.core.prompts import COMPLETION_REPLY, END_KEYWORDS, PHASES
 from app.core.profile import ProfileAnalysis, analyze_profile, prior_for_day
@@ -82,21 +90,36 @@ class AgenticInterviewEngine:
         )
 
         normalized = " ".join(message.lower().split())
-        force_wrap = (
-            state.turn_count >= self.max_turns
-            or len(state.asked) >= self.default_questions
-            or normalized in END_KEYWORDS
-        )
+        # max_turns is a runaway guard only — the evidence state machine
+        # ends the run naturally when every completed day is closed, so a
+        # 31-day pool needs (and gets) far more than 50 turns.
+        force_wrap = state.turn_count >= self.max_turns or normalized in END_KEYWORDS
         if force_wrap:
             return await self._wrap_up(state, reason="completed")
 
         grade = await self._grade_answer(state, message) if state.asked else None
+        if grade is not None and state.asked:
+            day = state.asked[-1].day
+            record = record_for(state, day)
+            missing = (
+                grade.evidence.concepts_missing
+                if grade.evidence is not None
+                else []
+            )
+            terminal = evaluate_evidence(
+                record, grade.weighted_score, missing, grade.overclaim, grade.vague
+            )
+            if terminal is not None:
+                self._stamp_evidence(state, day, terminal, record["close_reason"])
+
         action = self._director.decide(state, grade, message, use_llm=self._use_llm)
 
         if action == "hint":
             return await self._give_hint(state)
         if action == "follow_up" and grade is not None:
             return await self._ask_followup(state, grade, message)
+        if action == "wrap_up":
+            return await self._wrap_up(state, reason="evidence_complete")
 
         return await self._ask_next(state)
 
@@ -155,10 +178,9 @@ class AgenticInterviewEngine:
             state, self._analyze(state), state.belief_state, state.candidate
         )
         if question is None:
-            # The completed-day pool is exhausted: the interview is complete.
-            # Fewer than `default_questions` is expected when the candidate
-            # has fewer completed curriculum days — never fall back to
-            # asking about uncompleted days.
+            # Every completed curriculum day is closed (or the pool is
+            # empty): the interview is complete. The length was set by the
+            # evidence, not a fixed question count.
             return await self._wrap_up(state, reason="plan_exhausted")
         question.text = await self._interviewer.render_question(
             question,
@@ -189,6 +211,7 @@ class AgenticInterviewEngine:
         self, state: InterviewState, grade: GradeResult, message: str
     ) -> EngineTurn:
         question = state.asked[-1]
+        record_for(state, question.day)["probes"] += 1
         target: ProbeTarget = build_probe_target(grade, message, question.day)
         reply = await self._interviewer.render_followup(
             target, self.curriculum.get(question.day), state.candidate
@@ -224,6 +247,8 @@ class AgenticInterviewEngine:
 
     async def _give_hint(self, state: InterviewState) -> EngineTurn:
         question = state.asked[-1] if state.asked else None
+        if question is not None:
+            record_for(state, question.day)["hints"] += 1
         difficulty = question.difficulty if question else "L1"
         reply = await self._interviewer.render_hint(
             self.curriculum.get(question.day) if question else None, difficulty
@@ -258,9 +283,25 @@ class AgenticInterviewEngine:
     # -- helpers -------------------------------------------------------------
 
     def _plan_size(self, state: InterviewState) -> int:
-        """Questions this run will actually ask: the completed-day pool,
-        capped at the default question count (never more than the default)."""
-        return max(min(len(state.plan), self.default_questions), 1)
+        """The interview scope: the completed-day pool. There is no fixed
+        question count — every completed day gets assessed, and the run
+        ends when all of them carry terminal evidence."""
+        return max(len(state.plan), 1)
+
+    def _stamp_evidence(self, state: InterviewState, day: int, status: str, reason: str | None) -> None:
+        """Attach the day's terminal evidence state to its question entry so
+        the report can distinguish observed from estimated mastery without
+        exposing internal state through the API (additive transcript meta)."""
+        for entry in reversed(state.transcript):
+            if (
+                entry.role == "interviewer"
+                and entry.day == day
+                and entry.meta.get("action") is None
+            ):
+                entry.meta["evidence"] = status
+                if reason:
+                    entry.meta["evidence_reason"] = reason
+                break
 
     def _analyze(self, state: InterviewState) -> ProfileAnalysis:
         candidate = state.candidate

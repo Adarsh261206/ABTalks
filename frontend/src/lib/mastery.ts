@@ -3,16 +3,25 @@ import type { CandidateProfile, Mission } from "./types";
 
 /**
  * Per-completed-day mastery visualization for the Engineering Assessment
- * Report (M10). Mirrors the backend's deterministic profile priors
- * (`app/core/profile.py`) so the report can distinguish what was OBSERVED
- * during the interview from what is only ESTIMATED from the mission record
- * + belief state. Estimates are directional and never presented as verified.
+ * Report (M10, M11). Mirrors the backend's evidence state machine
+ * (`app/core/evidence.py` + profile priors in `app/core/profile.py`) so the
+ * report can distinguish what was OBSERVED during the interview from what
+ * is only ESTIMATED from the mission record + belief state. When the
+ * transcript carries the engine's per-day evidence stamp (verified /
+ * sufficient / needs_validation) it is trusted verbatim; older transcripts
+ * fall back to deterministic signal inference. Estimates are directional
+ * and never presented as verified.
  */
 
-export type MasteryStatus = "verified" | "estimated" | "needs_validation";
+export type MasteryStatus =
+  | "verified"
+  | "sufficient"
+  | "estimated"
+  | "needs_validation";
 
 export const MASTERY_STATUS_LABELS: Record<MasteryStatus, string> = {
   verified: "✓ Interview Verified",
+  sufficient: "◐ Sufficient Evidence",
   estimated: "≈ Estimated from Profile + Belief State",
   needs_validation: "⚠ Needs Validation",
 };
@@ -20,7 +29,7 @@ export const MASTERY_STATUS_LABELS: Record<MasteryStatus, string> = {
 export interface MasteryEstimate {
   day: number;
   mastery: number | null;
-  confidence: "High" | "Low";
+  confidence: "High" | "Medium" | "Low";
   confidenceReason: string;
   evidenceSource: string;
   status: MasteryStatus;
@@ -115,10 +124,21 @@ export function estimateMastery(
   return Math.round(clamp(m) * 100) / 100;
 }
 
+/**
+ * Evidence status for a covered day (M11). Trusts the engine's per-day
+ * stamp from the transcript when present; otherwise infers from signals:
+ * follow-ups or hints mean the day closed without clean confirmation,
+ * a single clean answer is Sufficient Evidence, clean multi-answer
+ * coverage is Interview Verified.
+ */
 export function masteryStatusFor(signal: DaySignal): MasteryStatus {
-  if (signal.probes > 0 || signal.hints > 0 || signal.answers < MIN_ANSWERS_VERIFY) {
+  if (signal.evidence) {
+    if (signal.evidence === "verified") return "verified";
+    if (signal.evidence === "sufficient") return "sufficient";
     return "needs_validation";
   }
+  if (signal.probes > 0 || signal.hints > 0) return "needs_validation";
+  if (signal.answers < MIN_ANSWERS_VERIFY) return "sufficient";
   return "verified";
 }
 
@@ -139,11 +159,12 @@ export function estimateFor(
     const status = masteryStatusFor(signal);
     const prior = candidate ? priorForDay(candidate, day) : null;
     const mastery = estimateMastery(signal, prior);
-    const confidence = status === "verified" ? "High" : "Low";
+    const confidence: MasteryEstimate["confidence"] =
+      status === "verified" ? "High" : status === "sufficient" ? "Medium" : "Low";
     const confidenceReason =
       status === "verified"
-        ? `${signal.answers} clean answers, no follow-ups`
-        : reasonForUnconfirmed(signal);
+        ? `${signal.answers} clean answer${signal.answers === 1 ? "" : "s"}, no follow-ups`
+        : signal.evidenceReason ?? reasonForUnconfirmed(signal);
     const evidenceSource =
       signal.answers > 0
         ? `Interview · ${signal.answers} answer${signal.answers === 1 ? "" : "s"}`

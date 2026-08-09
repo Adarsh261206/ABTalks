@@ -97,10 +97,11 @@ describe("analyzeTranscript", () => {
 });
 
 describe("poolSizeFor", () => {
-  it("caps the pool at 8 questions but never exceeds completed days", () => {
+  it("uses the full completed-day pool — no 8-question cap (M11)", () => {
     expect(poolSizeFor([])).toBe(8);
     expect(poolSizeFor([7, 12])).toBe(2);
-    expect(poolSizeFor([7, 8, 10, 12, 16, 22, 23, 28, 29, 31])).toBe(8);
+    expect(poolSizeFor([7, 8, 10, 12, 16, 22, 23, 28, 29, 31])).toBe(10);
+    expect(poolSizeFor([...Array.from({ length: 31 }, (_, i) => i + 1)])).toBe(31);
   });
 });
 

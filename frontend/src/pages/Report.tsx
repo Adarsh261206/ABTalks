@@ -176,34 +176,56 @@ export function Report() {
           </p>
         </section>
 
-        {/* headline metrics */}
-        <section className="mt-10 grid gap-4 sm:grid-cols-3 animate-fade-up" style={{ animationDelay: "80ms" }}>
+        {/* headline metrics (M11: evidence-driven run accounting) */}
+        <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-fade-up" style={{ animationDelay: "80ms" }}>
           <Card className="p-5">
-            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Curriculum coverage</div>
+            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Completed curriculum days</div>
+            <div className="mt-2 text-3xl font-semibold text-zinc-50">{completedDays.length}</div>
+            <p className="mt-2 text-[11px] text-zinc-600">
+              The interview pool — your completed curriculum only. Failed, skipped and
+              not-started days are never asked about.
+            </p>
+          </Card>
+          <Card className="p-5">
+            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Interviewed curriculum days</div>
+            <div className="mt-2 text-3xl font-semibold text-zinc-50">{analysis.coveredDays.length}</div>
+            <p className="mt-2 text-[11px] text-zinc-600">
+              Days assessed live with interview evidence.
+            </p>
+          </Card>
+          <Card className="p-5">
+            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Estimated curriculum days</div>
+            <div className="mt-2 text-3xl font-semibold text-zinc-50">
+              {Math.max(completedDays.length - analysis.coveredDays.length, 0)}
+            </div>
+            <p className="mt-2 text-[11px] text-zinc-600">
+              Completed days not asked — mastery estimated from the mission record +
+              belief state, never presented as verified.
+            </p>
+          </Card>
+          <Card className="p-5">
+            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Total questions asked</div>
+            <div className="mt-2 text-3xl font-semibold text-zinc-50">{analysis.questionsAsked}</div>
+            <p className="mt-2 text-[11px] text-zinc-600">
+              The run ends when every completed day carries terminal evidence —
+              there is no fixed interview length.
+            </p>
+          </Card>
+          <Card className="p-5">
+            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Adaptive follow-ups</div>
+            <div className="mt-2 text-3xl font-semibold text-zinc-50">{analysis.probes}</div>
+            <p className="mt-2 text-[11px] text-zinc-600">
+              Weak or vague answers trigger follow-up probes until evidence is
+              sufficient. {analysis.hints > 0 ? `${analysis.hints} hints given (teaching mode).` : "No hints needed."}
+            </p>
+          </Card>
+          <Card className="p-5">
+            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Evidence coverage</div>
             <div className="mt-2 text-3xl font-semibold text-zinc-50">{analysis.coveragePct}%</div>
             <Progress value={analysis.coveragePct} tone={analysis.coveragePct >= 50 ? "mint" : "aurora"} className="mt-3" />
             <p className="mt-2 text-[11px] text-zinc-600">
-              {analysis.coveredDays.length}/{completedLabel} completed curriculum days interviewed
-            </p>
-            <p className="mt-1 text-[11px] text-zinc-700">
-              The interview pool is your completed curriculum only. Days not asked are
-              estimated from the mission record + belief state — estimates are never
-              presented as verified.
-            </p>
-          </Card>
-          <Card className="p-5">
-            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Grounded probes</div>
-            <div className="mt-2 text-3xl font-semibold text-zinc-50">{analysis.probes}</div>
-            <p className="mt-3 text-[11px] leading-relaxed text-zinc-600">
-              Follow-ups every time an answer missed concepts from a retrieved objective — each
-              probe carries its reason in the transcript.
-            </p>
-          </Card>
-          <Card className="p-5">
-            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Teaching mode</div>
-            <div className="mt-2 text-3xl font-semibold text-zinc-50">{analysis.hints}</div>
-            <p className="mt-3 text-[11px] leading-relaxed text-zinc-600">
-              Hints scaffold the answer without revealing it — never shame, never grade mid-run.
+              {analysis.coveredDays.length}/{completedLabel} completed curriculum days closed
+              with interview evidence.
             </p>
           </Card>
         </section>
@@ -254,6 +276,7 @@ export function Report() {
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Badge tone="mint">✓ Interview Verified</Badge>
+            <Badge tone="violet">◐ Sufficient Evidence</Badge>
             <Badge tone="aurora">≈ Estimated from Profile + Belief State</Badge>
             <Badge tone="amber">⚠ Needs Validation</Badge>
             <Badge tone="neutral">Not in pool (failed / skipped / not started)</Badge>
@@ -296,7 +319,13 @@ export function Report() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`font-medium ${row.confidence === "High" ? "text-mint-300" : "text-amber-300/90"}`}>
+                          <span className={`font-medium ${
+                            row.confidence === "High"
+                              ? "text-mint-300"
+                              : row.confidence === "Medium"
+                                ? "text-aurora-300/90"
+                                : "text-amber-300/90"
+                          }`}>
                             {row.confidence}
                           </span>
                           <div className="mt-0.5 text-[11px] text-zinc-600">{row.confidenceReason}</div>
@@ -319,8 +348,8 @@ export function Report() {
           <h2 className="text-sm font-medium text-zinc-100">Coverage across the cohort</h2>
           <p className="mt-1 text-xs text-zinc-500">
             Interview pool = completed curriculum days (tinted). Verified days are mint,
-            needs-validation amber, estimated aurora; the rest are not in the pool. Core
-            question days are outlined.
+            sufficient-evidence violet, needs-validation amber, estimated aurora; the rest
+            are not in the pool. Core question days are outlined.
           </p>
           <div className="mt-4 space-y-3">
             {curriculumModules.map((module) => {
@@ -359,7 +388,9 @@ export function Report() {
                                 ? "border-amber-300/30 bg-amber-300/10 text-amber-300"
                                 : tone === "aurora"
                                   ? "border-aurora-500/30 bg-aurora-500/10 text-aurora-300"
-                                  : "border-white/6 bg-white/2 text-zinc-700"
+                                  : tone === "violet"
+                                    ? "border-violet-400/30 bg-violet-400/10 text-violet-300"
+                                    : "border-white/6 bg-white/2 text-zinc-700"
                           } ${core ? "ring-1 ring-inset ring-white/25" : ""}`}
                         >
                           {day}
@@ -462,8 +493,9 @@ export function Report() {
   );
 }
 
-function masteryTone(status: MasteryStatus): "mint" | "amber" | "aurora" {
+function masteryTone(status: MasteryStatus): "mint" | "violet" | "amber" | "aurora" {
   if (status === "verified") return "mint";
+  if (status === "sufficient") return "violet";
   if (status === "needs_validation") return "amber";
   return "aurora";
 }

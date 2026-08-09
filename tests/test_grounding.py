@@ -372,7 +372,9 @@ def test_reporter_fallback_cites_retrieved_evidence():
              for d in (7, 8, 10, 12, 16, 22, 23, 28, 29, 31)]
         ))
         done = None
-        for i in range(9):
+        # M11: weak answers need ~3 turns per day (question + 2 probes),
+        # so a full 10-day pool takes ~31 turns — no 8-question cap.
+        for i in range(40):
             turn = await engine.process(
                 state, f"Answer {i} with enough detail to show reasoning about architecture choices."
             )

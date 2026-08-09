@@ -443,17 +443,28 @@ def test_mock_engine_full_interview_satisfies_minimums():
         welcome = await engine.start(state, MANY_DAYS)
         assert "Test Candidate" in welcome
         done = None
-        for i in range(9):
+        # M11: no fixed question count — the run ends when every completed
+        # day carries terminal evidence (~3 weak answers per day).
+        for i in range(40):
             turn = await engine.process(state, f"Answer {i} with enough detail to show reasoning about architecture choices.")
             if turn.done:
                 done = turn
                 break
         assert done is not None
-        assert len(state.asked) == 8
+        assert len(state.asked) == len(state.plan) == 10  # all 10 completed days assessed
         assert len(state.covered_days) >= 4
+        assert state.completed_reason == "evidence_complete"
         assert done.feedback is not None
         assert done.feedback.summary.startswith("Practice interview completed")
         assert done.feedback.strengths and done.feedback.gaps and done.feedback.next
+        # every asked day's question entry carries a terminal evidence stamp
+        stamped = [
+            t.meta.get("evidence")
+            for t in state.transcript
+            if t.role == "interviewer" and t.meta.get("evidence")
+        ]
+        assert len(stamped) == 10
+        assert all(s in {"verified", "sufficient", "needs_validation"} for s in stamped)
 
     _run(_body())
 
@@ -464,7 +475,7 @@ def test_mock_engine_short_pool_completes_after_pool_exhausted():
         state = _new_state()
         await engine.start(state, GERALD)
         done = None
-        for i in range(5):
+        for i in range(10):
             turn = await engine.process(state, f"Answer {i} with enough detail to show reasoning about architecture choices.")
             if turn.done:
                 done = turn
@@ -474,6 +485,67 @@ def test_mock_engine_short_pool_completes_after_pool_exhausted():
         assert set(state.covered_days) == {7, 12}
         assert "2 of 2 completed curriculum days" in done.feedback.summary
         assert not any("full question plan" in g for g in done.feedback.gaps)
+
+    _run(_body())
+
+
+def test_mock_engine_weak_answers_probe_then_close_needs_validation():
+    async def _body():
+        engine = AgenticInterviewEngine(curriculum=CURRICULUM)
+        state = _new_state()
+        await engine.start(state, GERALD)
+        turn = await engine.process(state, "Let's begin.")
+        assert "Day 12" in turn.reply
+        for i in range(3):
+            turn = await engine.process(state, f"A short weak answer {i} without enough content.")
+            if turn.done:
+                break
+        record = state.meta["day_evidence_status"]["12"]
+        assert record["state"] == "needs_validation"
+        assert record["probes"] == 2
+        assert record["close_reason"]
+        stamped = next(
+            t.meta["evidence"]
+            for t in state.transcript
+            if t.role == "interviewer" and t.day == 12 and t.meta.get("evidence")
+        )
+        assert stamped == "needs_validation"
+
+    _run(_body())
+
+
+def test_mock_engine_strong_answer_closes_day_with_one_question():
+    async def _body():
+        engine = AgenticInterviewEngine(curriculum=CURRICULUM)
+        state = _new_state()
+        await engine.start(state, GERALD)
+        await engine.process(state, "First message.")
+        turn = await engine.process(
+            state,
+            "I understand prompt engineering deeply. Zero-shot prompting asks the "
+            "LLM to answer directly, few-shot prompting includes example "
+            "demonstrations in the prompt, and chain-of-thought prompting lets "
+            "the model reason step by step before answering. I design system "
+            "prompt variations for the chatbot covering role, constraints, tone "
+            "and output format, and prompt templates parameterize repeated "
+            "structure so one template renders many variants. LLMs respond "
+            "predictably when the template gives clear instructions with "
+            "examples, and I test each variation against the objective and keep "
+            "the best performers.",
+        )
+        # M11: a strong answer closes the day after ONE question — no fixed
+        # 8-question plan, no probing. GERALD's other pool day (7) is still
+        # open, so the run continues rather than wrapping.
+        assert not turn.done
+        record = state.meta["day_evidence_status"]["12"]
+        assert record["state"] in {"verified", "sufficient"}
+        assert record["probes"] == 0
+        stamped = next(
+            t.meta["evidence"]
+            for t in state.transcript
+            if t.role == "interviewer" and t.day == 12 and t.meta.get("evidence")
+        )
+        assert stamped == record["state"]
 
     _run(_body())
 
@@ -555,12 +627,14 @@ def test_engine_llm_path_uses_provider():
                 "Let's talk about Day 16.",
                 "Let's talk about Day 22.",
                 "Let's talk about Day 23.",
+                "Let's talk about Day 28.",
+                "Let's talk about Day 29.",
             ],
             structured=[
                 {"accuracy": 4.0, "depth": 4.0, "clarity": 4.0, "honesty_bonus": 0.0,
                  "evidence_quotes": [], "mistakes": [], "overclaim": False,
                  "overclaim_evidence": None, "vague": False, "vague_evidence": None}
-            ] * 7
+            ] * 10
             + [
                 {"summary": "Practice interview completed. Strong.",
                  "strengths": ["Day 7 solid"], "gaps": ["Day 8 shallow"], "next": ["Revisit Day 8"]}
@@ -574,7 +648,9 @@ def test_engine_llm_path_uses_provider():
         welcome = await engine.start(state, MANY_DAYS)
         assert welcome == "Welcome, Test Candidate."
         done = None
-        for i in range(9):
+        # M11: strong scripted answers (4.0, no flags) close each of the 10
+        # completed days after one question — no fixed question count.
+        for i in range(15):
             turn = await engine.process(state, f"Answer {i} in detail about the architecture and trade-offs.")
             if turn.done:
                 done = turn
@@ -582,7 +658,15 @@ def test_engine_llm_path_uses_provider():
         assert done is not None and done.done is True
         assert done.reply == "Interview completed."
         assert done.feedback.summary == "Practice interview completed. Strong."
-        assert provider.structured_calls == 8
+        assert provider.structured_calls == 11
+        assert len(state.asked) == 10
+        # every day closed as sufficient — strong answers, fewer questions
+        stamped = {
+            t.day: t.meta.get("evidence")
+            for t in state.transcript
+            if t.role == "interviewer" and t.meta.get("evidence")
+        }
+        assert set(stamped.values()) == {"sufficient"}
 
     _run(_body())
 
@@ -601,7 +685,7 @@ def test_engine_survives_full_provider_outage():
                 done = turn
                 break
         assert done is not None and done.feedback is not None
-        assert len(state.asked) == 8
+        assert len(state.asked) == 10  # every completed day assessed
         assert state.status == "completed"
 
     _run(_body())

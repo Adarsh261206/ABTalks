@@ -5,7 +5,7 @@ export function Progress({
 }: {
   value: number;
   className?: string;
-  tone?: "aurora" | "mint" | "amber";
+  tone?: "aurora" | "mint" | "amber" | "violet";
 }) {
   const clamped = Math.max(0, Math.min(100, value));
   const color =
@@ -13,7 +13,9 @@ export function Progress({
       ? "bg-mint-400"
       : tone === "amber"
         ? "bg-amber-300"
-        : "bg-gradient-to-r from-aurora-500 to-aurora-400";
+        : tone === "violet"
+          ? "bg-violet-400"
+          : "bg-gradient-to-r from-aurora-500 to-aurora-400";
   return (
     <div
       role="progressbar"

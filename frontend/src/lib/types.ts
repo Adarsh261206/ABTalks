@@ -34,6 +34,9 @@ export interface TranscriptMeta {
   followup_reason?: string;
   missing_concepts?: string[];
   day?: number;
+  /** M11: terminal evidence state stamped by the engine when a day closes. */
+  evidence?: string;
+  evidence_reason?: string;
 }
 
 export interface TranscriptEntry {

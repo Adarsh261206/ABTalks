@@ -24,6 +24,9 @@ export interface DaySignal {
   answers: number;
   followupReasons: string[];
   missingConcepts: string[];
+  /** M11: terminal evidence state stamped on the transcript by the engine. */
+  evidence?: string;
+  evidenceReason?: string;
 }
 
 export interface TranscriptAnalysis {
@@ -41,12 +44,13 @@ export interface TranscriptAnalysis {
 }
 
 /**
- * The interview only ever asks about COMPLETED curriculum days (passed
- * missions). The 8-question cap applies, but a smaller completed-day pool
- * shortens the run — a full pool run is complete even below 8 questions.
+ * The interview scope is the candidate's COMPLETED curriculum days only
+ * (passed missions) — there is no fixed question count (M11). A small pool
+ * shortens the run; a 31-day pool assesses all 31 days until each carries
+ * terminal evidence. The returned size is the progress denominator.
  */
 export function poolSizeFor(completedDays: number[]): number {
-  return completedDays.length > 0 ? Math.min(8, completedDays.length) : 8;
+  return completedDays.length > 0 ? completedDays.length : 8;
 }
 
 export function analyzeTranscript(
@@ -109,6 +113,22 @@ export function analyzeTranscript(
 
   const coveredDays = [...seen].sort((a, b) => a - b);
   const coreCovered = coveredDays.filter((d) => CORE_DAYS.includes(d));
+
+  // M11: the engine stamps each closed day's question entry with its
+  // terminal evidence state — the report reads the stamp (observed truth)
+  // and only falls back to signal inference on older transcripts.
+  for (const entry of transcript) {
+    const stamp = entry.meta?.evidence;
+    if (stamp && entry.day != null) {
+      const signal =
+        perDay.get(entry.day) ??
+        { day: entry.day, questions: 0, probes: 0, hints: 0, answers: 0, followupReasons: [], missingConcepts: [] };
+      signal.evidence = stamp;
+      signal.evidenceReason = entry.meta?.evidence_reason;
+      perDay.set(entry.day, signal);
+    }
+  }
+
   const followupEntries = transcript.filter(
     (t) => t.role === "interviewer" && t.meta?.action === "follow_up",
   );

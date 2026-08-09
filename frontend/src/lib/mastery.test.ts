@@ -120,16 +120,22 @@ describe("masteryStatusFor", () => {
     expect(masteryStatusFor(signal({ questions: 2, answers: 2 }))).toBe("verified");
   });
 
+  it("marks a single clean answer as sufficient evidence (M11)", () => {
+    expect(masteryStatusFor(signal({ answers: 1 }))).toBe("sufficient");
+  });
+
+  it("trusts the engine's evidence stamp over signal inference", () => {
+    expect(masteryStatusFor(signal({ answers: 1, evidence: "verified" }))).toBe("verified");
+    expect(masteryStatusFor(signal({ answers: 2, evidence: "sufficient" }))).toBe("sufficient");
+    expect(masteryStatusFor(signal({ answers: 2, evidence: "needs_validation" }))).toBe("needs_validation");
+  });
+
   it("marks follow-ups as needs validation", () => {
     expect(masteryStatusFor(signal({ answers: 2, probes: 1 }))).toBe("needs_validation");
   });
 
   it("marks hints as needs validation", () => {
     expect(masteryStatusFor(signal({ answers: 2, hints: 1 }))).toBe("needs_validation");
-  });
-
-  it("marks a single thin answer as needs validation", () => {
-    expect(masteryStatusFor(signal({ answers: 1 }))).toBe("needs_validation");
   });
 });
 
@@ -148,6 +154,22 @@ describe("estimateFor / estimatesFor", () => {
     expect(row.confidence).toBe("Low");
     expect(row.confidenceReason).toBe("1 follow-up");
     expect(row.mastery).toBe(0.85); // prior 0.95 - 0.1
+  });
+
+  it("labels a single clean answer as sufficient with medium confidence", () => {
+    const row = estimateFor(7, signal({ answers: 1 }), candidate());
+    expect(row.status).toBe("sufficient");
+    expect(row.confidence).toBe("Medium");
+  });
+
+  it("uses the engine's stamped evidence reason when present", () => {
+    const row = estimateFor(
+      7,
+      signal({ answers: 1, evidence: "sufficient", evidenceReason: "single answer scored 4.2" }),
+      candidate(),
+    );
+    expect(row.status).toBe("sufficient");
+    expect(row.confidenceReason).toBe("single answer scored 4.2");
   });
 
   it("labels uncovered completed days as estimated from profile + belief state", () => {

@@ -15,6 +15,11 @@ import statistics
 from pydantic import BaseModel, Field
 
 from app.core.curriculum import DayInfo
+from app.core.evidence import (
+    EVIDENCE_NEEDS_VALIDATION,
+    EVIDENCE_SUFFICIENT,
+    EVIDENCE_VERIFIED,
+)
 from app.core.llm import LLMGateway, LLMGatewayError
 from app.core.prompts import REPORTER_EVIDENCE, REPORTER_SYSTEM
 from app.core.profile import ProfileAnalysis
@@ -105,6 +110,8 @@ class Reporter:
             f"Completed curriculum days (the interview pool): "
             f"{analysis.completed_days or 'none'}\n\n"
             f"Covered days: {state.covered_days}. Questions asked: {len(state.asked)}.\n\n"
+            f"Per-day evidence states (verified / sufficient / needs_validation): "
+            f"{_evidence_states_summary(state) or 'none'}\n\n"
             f"{evidence}"
         )
 
@@ -120,9 +127,11 @@ class Reporter:
         n = len(state.asked)
         covered = list(state.covered_days)
         # Ending "early" means running out of turns / keywords, NOT exhausting
-        # the completed-day pool — a full pool run is complete even < 8
-        # questions when the candidate has fewer completed days.
-        early = n < self._default_questions and n < len(state.plan)
+        # the completed-day pool. The evidence state machine ends a full run
+        # when every completed day carries terminal evidence — so any plan
+        # day that was never closed is an incomplete run (M11).
+        plan_days = [p["day"] for p in state.plan]
+        early = any(day not in covered for day in plan_days)
 
         strengths: list[str] = []
         for day, avg in sorted(avgs.items(), key=lambda kv: kv[1], reverse=True):
@@ -135,11 +144,26 @@ class Reporter:
         if not strengths:
             strengths = ["Engaged with every question asked."]
 
+        statuses = state.meta.get("day_evidence_status", {})
+        gapped: set[int] = set()
         gaps: list[str] = []
         for day, avg in sorted(avgs.items(), key=lambda kv: kv[1]):
             if avg < _GAP_THRESHOLD:
                 gaps.append(
                     f"Day {day} — {_gap_text(day, state, curriculum)}"
+                )
+                gapped.add(day)
+            if len(gaps) >= 3:
+                break
+        for day in plan_days:
+            rec = statuses.get(str(day)) or {}
+            if (
+                rec.get("state") == EVIDENCE_NEEDS_VALIDATION
+                and day not in gapped
+            ):
+                reason = rec.get("close_reason") or "the interview could not confirm mastery"
+                gaps.append(
+                    f"Day {day} — {_title(day, curriculum)}: needs validation — {reason}."
                 )
             if len(gaps) >= 3:
                 break
@@ -153,8 +177,8 @@ class Reporter:
                 break
         if early and len(gaps) < 3:
             gaps.append(
-                "The interview was ended before the full question plan — a full "
-                "run gives a more reliable assessment."
+                "The interview was ended before every completed curriculum day was "
+                "assessed — a full run gives a more reliable assessment."
             )
         if not gaps:
             gaps.append(
@@ -162,6 +186,7 @@ class Reporter:
                 "full question sequence next time."
             )
 
+        in_next: set[int] = set()
         next_steps: list[str] = []
         for day, avg in sorted(avgs.items(), key=lambda kv: kv[1]):
             if avg < _GAP_THRESHOLD:
@@ -178,7 +203,21 @@ class Reporter:
                         f"Revisit Day {day} — {_title(day, curriculum)}: walk through your "
                         "implementation step by step and explain the trade-offs you made."
                     )
+                in_next.add(day)
             if len(next_steps) >= 2:
+                break
+        for day in plan_days:
+            rec = statuses.get(str(day)) or {}
+            if (
+                rec.get("state") == EVIDENCE_NEEDS_VALIDATION
+                and day not in in_next
+            ):
+                reason = rec.get("close_reason") or "the interview could not confirm mastery"
+                next_steps.append(
+                    f"Revisit Day {day} — {_title(day, curriculum)}: needs validation — {reason}."
+                )
+                in_next.add(day)
+            if len(next_steps) >= 3:
                 break
         for day in analysis.probe_days:
             if day not in covered:
@@ -213,6 +252,13 @@ class Reporter:
                 f"Practice interview completed after {n} questions across "
                 f"{len(covered)} of {completed_count} completed curriculum days."
             )
+            counts = _evidence_counts(state, plan_days)
+            if any(counts.values()):
+                summary += (
+                    f" Evidence: {counts[EVIDENCE_VERIFIED]} verified, "
+                    f"{counts[EVIDENCE_SUFFICIENT]} sufficient, "
+                    f"{counts[EVIDENCE_NEEDS_VALIDATION]} needs validation."
+                )
         else:
             summary = (
                 "Practice interview completed. No completed curriculum days on record "
@@ -286,6 +332,29 @@ def _strength_text(day: int, state: InterviewState, curriculum: dict[int, DayInf
 def _priors_summary(analysis: ProfileAnalysis) -> str:
     return "; ".join(
         f"Day {day}: {prior:.2f}" for day, prior in sorted(analysis.priors.items())
+    )
+
+
+def _evidence_counts(state: InterviewState, plan_days: list[int]) -> dict[str, int]:
+    """Counts of terminal evidence states across the completed-day pool."""
+    counts: dict[str, int] = {
+        EVIDENCE_VERIFIED: 0,
+        EVIDENCE_SUFFICIENT: 0,
+        EVIDENCE_NEEDS_VALIDATION: 0,
+    }
+    statuses = state.meta.get("day_evidence_status", {})
+    for day in plan_days:
+        rec = statuses.get(str(day)) or {}
+        if rec.get("state") in counts:
+            counts[rec["state"]] += 1
+    return counts
+
+
+def _evidence_states_summary(state: InterviewState) -> str:
+    statuses = state.meta.get("day_evidence_status", {})
+    return "; ".join(
+        f"Day {day}: {rec.get('state')}" + (f" ({rec.get('close_reason')})" if rec.get("close_reason") else "")
+        for day, rec in sorted(statuses.items(), key=lambda kv: int(kv[0]))
     )
 
 
