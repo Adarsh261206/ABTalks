@@ -215,7 +215,7 @@ export function InterviewRoom() {
       <div className="flex min-h-screen items-center justify-center px-6">
         <Card className="max-w-md p-8 text-center">
           <Logo size={40} />
-          <h1 className="mt-4 text-lg font-medium text-zinc-100">No candidate selected</h1>
+          <h1 className="mt-4 text-lg font-medium text-zinc-900">No candidate selected</h1>
           <p className="mt-2 text-sm text-zinc-500">
             Pick a candidate profile on the landing page to begin.
           </p>
@@ -234,17 +234,17 @@ export function InterviewRoom() {
 
   return (
     <div className="flex h-screen flex-col">
-      <header className="flex items-center justify-between border-b border-white/5 bg-ink-950/70 px-4 py-3 backdrop-blur sm:px-6">
+      <header className="flex items-center justify-between border-b border-black/5 bg-white/80 px-4 py-3 backdrop-blur sm:px-6">
         <div className="flex items-center gap-3">
           <Logo size={26} />
           <div>
-            <div className="text-sm font-medium text-zinc-100">
+            <div className="text-sm font-medium text-zinc-900">
               {candidate.member.name}
-              <span className="ml-2 hidden text-xs font-normal text-zinc-500 sm:inline">
+              <span className="ml-2 hidden text-xs font-normal text-zinc-400 sm:inline">
                 {candidate.member.jobRole}
               </span>
             </div>
-            <div className="text-[11px] text-zinc-600">Live session · {sessionId}</div>
+            <div className="text-[11px] text-zinc-400">Live session · {sessionId}</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -279,13 +279,13 @@ export function InterviewRoom() {
               <div
                 className={`max-w-[85%] animate-fade-up rounded-2xl px-4 py-3 sm:max-w-[75%] ${
                   entry.role === "candidate"
-                    ? "rounded-br-md bg-aurora-500/12 border border-aurora-500/15 text-zinc-200"
-                    : "rounded-bl-md bg-ink-850 border border-white/8 text-zinc-300"
+                    ? "rounded-br-md bg-aurora-500/5 border border-aurora-500/20 text-zinc-800"
+                    : "rounded-bl-md bg-zinc-50 border border-black/10 text-zinc-700"
                 }`}
               >
                 {entry.role === "interviewer" && (
                   <div className="mb-1 flex items-center gap-2">
-                    <span className="text-[10px] font-semibold tracking-[0.15em] text-aurora-400/80">
+                    <span className="text-[10px] font-semibold tracking-[0.15em] text-aurora-600/80">
                       VIVA
                     </span>
                     {entry.day != null && (
@@ -309,7 +309,7 @@ export function InterviewRoom() {
           ))}
           {busy && (
             <article className="flex justify-start">
-              <div className="rounded-2xl rounded-bl-md border border-white/8 bg-ink-850 px-4 py-3">
+              <div className="rounded-2xl rounded-bl-md border border-black/10 bg-zinc-50 px-4 py-3">
                 <TypingDots />
               </div>
             </article>
@@ -326,7 +326,7 @@ export function InterviewRoom() {
           <Card className="p-5">
             <div className="flex items-baseline justify-between">
               <span className="text-[11px] font-medium tracking-wide text-zinc-500">Question</span>
-              <span className="text-xs text-zinc-400">
+              <span className="text-xs text-zinc-600">
                 {questionIndex} / {poolSize}
               </span>
             </div>
@@ -343,21 +343,21 @@ export function InterviewRoom() {
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${
                           complete
-                            ? "bg-mint-400"
+                            ? "bg-mint-500"
                             : active
-                              ? "bg-aurora-400 animate-pulse"
-                              : "bg-white/15"
+                              ? "bg-aurora-500 animate-pulse"
+                              : "bg-black/10"
                         }`}
                         aria-hidden="true"
                       />
                       <span
                         className={`text-xs ${
-                          active || complete ? "text-zinc-300" : "text-zinc-600"
+                          active || complete ? "text-zinc-700" : "text-zinc-400"
                         }`}
                       >
                         {phase.name}
                       </span>
-                      <span className="text-[10px] text-zinc-600">{phase.desc}</span>
+                      <span className="text-[10px] text-zinc-400">{phase.desc}</span>
                     </div>
                   );
                 })}
@@ -370,7 +370,7 @@ export function InterviewRoom() {
               <span className="text-[11px] font-medium tracking-wide text-zinc-500">
                 Curriculum coverage
               </span>
-              <span className="text-xs text-zinc-400">
+              <span className="text-xs text-zinc-600">
                 {analysis.coveredDays.length}/{poolDays.length} completed
               </span>
             </div>
@@ -381,30 +381,30 @@ export function InterviewRoom() {
                   title={coveredSet.has(day) ? `Day ${day} covered` : `Day ${day} pending`}
                   className={`flex h-10 items-center justify-center rounded-lg border text-xs font-medium transition-colors ${
                     coveredSet.has(day)
-                      ? "border-mint-400/25 bg-mint-400/10 text-mint-300"
+                      ? "border-mint-500/30 bg-mint-400/5 text-mint-300"
                       : day === nextQuestionDay(analysis, poolDays)
-                        ? "border-aurora-500/40 bg-aurora-500/10 text-aurora-300"
-                        : "border-white/8 bg-white/2 text-zinc-600"
+                        ? "border-aurora-500/50 bg-aurora-500/5 text-aurora-600"
+                        : "border-zinc-200 bg-zinc-50 text-zinc-400"
                   }`}
                 >
                   {day}
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-[11px] leading-relaxed text-zinc-600">
+            <p className="mt-3 text-[11px] leading-relaxed text-zinc-400">
               {analysis.coveredDays.length}/{poolDays.length} completed curriculum days
               covered · {analysis.coveragePct}% of your completed pool
             </p>
           </Card>
 
           {analysis.lastFollowupReason && (
-            <Card className="border-aurora-500/20 p-5">
+            <Card className="border-aurora-500/25 p-5">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-medium tracking-wide text-aurora-300">
+                <span className="text-[11px] font-medium tracking-wide text-aurora-600">
                   Grounded follow-up
                 </span>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-zinc-400">
+              <p className="mt-2 text-xs leading-relaxed text-zinc-600">
                 {analysis.lastFollowupReason}
               </p>
             </Card>
@@ -417,12 +417,12 @@ export function InterviewRoom() {
       </div>
 
       {/* composer */}
-      <div className="border-t border-white/5 bg-ink-950/80 px-4 py-4 backdrop-blur sm:px-6">
+      <div className="border-t border-black/5 bg-white/90 px-4 py-4 backdrop-blur sm:px-6">
         <div className="mx-auto max-w-6xl">
           {error && (
             <div
               role="alert"
-              className="mb-2 rounded-lg border border-rose-400/25 bg-rose-400/10 px-3 py-2 text-xs text-rose-300 animate-fade-in"
+              className="mb-2 rounded-lg border border-rose-500/30 bg-rose-500/5 px-3 py-2 text-xs text-rose-300 animate-fade-in"
             >
               {error}
             </div>
@@ -461,7 +461,7 @@ export function InterviewRoom() {
               }
               rows={2}
               maxLength={4000}
-              className="max-h-40 flex-1 resize-none rounded-xl border border-white/10 bg-ink-850 px-4 py-3 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-aurora-500/40 focus:outline-none"
+              className="max-h-40 flex-1 resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-800 placeholder:text-zinc-400 focus:border-aurora-500/60 focus:outline-none"
             />
             <Button
               size="md"
@@ -472,7 +472,7 @@ export function InterviewRoom() {
               {!busy && <span aria-hidden="true">↑</span>}
             </Button>
           </div>
-          <p className="mt-2 text-[11px] text-zinc-600">
+          <p className="mt-2 text-[11px] text-zinc-400">
             Press <span className="text-zinc-500">/</span> to focus · Enter to send · commands:{" "}
             <span className="text-zinc-500">/hint</span> · <span className="text-zinc-500">/end</span>
           </p>

@@ -85,7 +85,7 @@ export function Report() {
         <span className="animate-pulse">
           <Logo size={44} />
         </span>
-        <p className="text-sm text-zinc-500">Assembling the assessment…</p>
+        <p className="text-sm text-zinc-400">Assembling the assessment…</p>
       </div>
     );
   }
@@ -95,8 +95,8 @@ export function Report() {
       <div className="flex min-h-screen items-center justify-center px-6">
         <Card className="max-w-md p-8 text-center">
           <Logo size={40} />
-          <h1 className="mt-4 text-lg font-medium text-zinc-100">No completed interview</h1>
-          <p className="mt-2 text-sm text-zinc-500">{error ?? "This session has no report yet."}</p>
+          <h1 className="mt-4 text-lg font-medium text-zinc-900">No completed interview</h1>
+          <p className="mt-2 text-sm text-zinc-400">{error ?? "This session has no report yet."}</p>
           <Button className="mt-6" onClick={() => navigate("/")}>
             Start a new interview
           </Button>
@@ -116,10 +116,10 @@ export function Report() {
 
   return (
     <div className="min-h-screen">
-      <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-8 print:hidden">
+      <header className="flex items-center justify-between border-b border-black/10 px-4 py-4 sm:px-8 print:hidden">
         <div className="flex items-center gap-3">
           <Logo size={26} />
-          <span className="text-sm font-semibold tracking-[0.2em] text-zinc-200">VIVA</span>
+          <span className="text-sm font-semibold tracking-[0.2em] text-zinc-800">VIVA</span>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -168,10 +168,10 @@ export function Report() {
               days
             </Badge>
           </div>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-50 sm:text-4xl print:text-zinc-900">
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl print:text-zinc-900">
             {candidateName(session)} — Engineering Assessment
           </h1>
-          <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-zinc-400 print:text-zinc-600">
+          <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-zinc-600 print:text-zinc-400">
             {report.summary}
           </p>
         </section>
@@ -179,51 +179,51 @@ export function Report() {
         {/* headline metrics (M11: evidence-driven run accounting) */}
         <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-fade-up" style={{ animationDelay: "80ms" }}>
           <Card className="p-5">
-            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Completed curriculum days</div>
-            <div className="mt-2 text-3xl font-semibold text-zinc-50">{completedDays.length}</div>
-            <p className="mt-2 text-[11px] text-zinc-600">
+            <div className="text-[11px] font-medium tracking-wide text-zinc-400">Completed curriculum days</div>
+            <div className="mt-2 text-3xl font-semibold text-zinc-950">{completedDays.length}</div>
+            <p className="mt-2 text-[11px] text-zinc-400">
               The interview pool — your completed curriculum only. Failed, skipped and
               not-started days are never asked about.
             </p>
           </Card>
           <Card className="p-5">
-            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Interviewed curriculum days</div>
-            <div className="mt-2 text-3xl font-semibold text-zinc-50">{analysis.coveredDays.length}</div>
-            <p className="mt-2 text-[11px] text-zinc-600">
+            <div className="text-[11px] font-medium tracking-wide text-zinc-400">Interviewed curriculum days</div>
+            <div className="mt-2 text-3xl font-semibold text-zinc-950">{analysis.coveredDays.length}</div>
+            <p className="mt-2 text-[11px] text-zinc-400">
               Days assessed live with interview evidence.
             </p>
           </Card>
           <Card className="p-5">
-            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Estimated curriculum days</div>
-            <div className="mt-2 text-3xl font-semibold text-zinc-50">
+            <div className="text-[11px] font-medium tracking-wide text-zinc-400">Estimated curriculum days</div>
+            <div className="mt-2 text-3xl font-semibold text-zinc-950">
               {Math.max(completedDays.length - analysis.coveredDays.length, 0)}
             </div>
-            <p className="mt-2 text-[11px] text-zinc-600">
+            <p className="mt-2 text-[11px] text-zinc-400">
               Completed days not asked — mastery estimated from the mission record +
               belief state, never presented as verified.
             </p>
           </Card>
           <Card className="p-5">
-            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Total questions asked</div>
-            <div className="mt-2 text-3xl font-semibold text-zinc-50">{analysis.questionsAsked}</div>
-            <p className="mt-2 text-[11px] text-zinc-600">
+            <div className="text-[11px] font-medium tracking-wide text-zinc-400">Total questions asked</div>
+            <div className="mt-2 text-3xl font-semibold text-zinc-950">{analysis.questionsAsked}</div>
+            <p className="mt-2 text-[11px] text-zinc-400">
               The run ends when every completed day carries terminal evidence —
               there is no fixed interview length.
             </p>
           </Card>
           <Card className="p-5">
-            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Adaptive follow-ups</div>
-            <div className="mt-2 text-3xl font-semibold text-zinc-50">{analysis.probes}</div>
-            <p className="mt-2 text-[11px] text-zinc-600">
+            <div className="text-[11px] font-medium tracking-wide text-zinc-400">Adaptive follow-ups</div>
+            <div className="mt-2 text-3xl font-semibold text-zinc-950">{analysis.probes}</div>
+            <p className="mt-2 text-[11px] text-zinc-400">
               Weak or vague answers trigger follow-up probes until evidence is
               sufficient. {analysis.hints > 0 ? `${analysis.hints} hints given (teaching mode).` : "No hints needed."}
             </p>
           </Card>
           <Card className="p-5">
-            <div className="text-[11px] font-medium tracking-wide text-zinc-500">Evidence coverage</div>
-            <div className="mt-2 text-3xl font-semibold text-zinc-50">{analysis.coveragePct}%</div>
+            <div className="text-[11px] font-medium tracking-wide text-zinc-400">Evidence coverage</div>
+            <div className="mt-2 text-3xl font-semibold text-zinc-950">{analysis.coveragePct}%</div>
             <Progress value={analysis.coveragePct} tone={analysis.coveragePct >= 50 ? "mint" : "aurora"} className="mt-3" />
-            <p className="mt-2 text-[11px] text-zinc-600">
+            <p className="mt-2 text-[11px] text-zinc-400">
               {analysis.coveredDays.length}/{completedLabel} completed curriculum days closed
               with interview evidence.
             </p>
@@ -232,32 +232,32 @@ export function Report() {
 
         {/* assessment body */}
         <section className="mt-10 grid gap-4 lg:grid-cols-3 animate-fade-up" style={{ animationDelay: "140ms" }}>
-          <Card className="border-mint-400/15 p-6">
-            <h2 className="text-xs font-semibold tracking-[0.15em] text-mint-300">Strengths</h2>
+          <Card className="border-mint-500/30 p-6">
+            <h2 className="text-xs font-semibold tracking-[0.15em] text-mint-600">Strengths</h2>
             <ul className="mt-4 space-y-4">
               {report.strengths.map((item, i) => (
-                <li key={i} className="text-sm leading-relaxed text-zinc-300">
+                <li key={i} className="text-sm leading-relaxed text-zinc-700">
                   <DayHighlights text={item} />
                 </li>
               ))}
             </ul>
           </Card>
-          <Card className="border-amber-300/15 p-6">
-            <h2 className="text-xs font-semibold tracking-[0.15em] text-amber-300">Gaps</h2>
+          <Card className="border-amber-400/30 p-6">
+            <h2 className="text-xs font-semibold tracking-[0.15em] text-amber-600">Gaps</h2>
             <ul className="mt-4 space-y-4">
               {report.gaps.map((item, i) => (
-                <li key={i} className="text-sm leading-relaxed text-zinc-300">
+                <li key={i} className="text-sm leading-relaxed text-zinc-700">
                   <DayHighlights text={item} />
                 </li>
               ))}
             </ul>
           </Card>
-          <Card className="border-aurora-500/15 p-6">
-            <h2 className="text-xs font-semibold tracking-[0.15em] text-aurora-300">Next steps</h2>
+          <Card className="border-aurora-500/30 p-6">
+            <h2 className="text-xs font-semibold tracking-[0.15em] text-aurora-600">Next steps</h2>
             <ul className="mt-4 space-y-4">
               {report.next.map((item, i) => (
-                <li key={i} className="text-sm leading-relaxed text-zinc-300">
-                  <span className="mr-2 text-aurora-400/70">{i + 1}.</span>
+                <li key={i} className="text-sm leading-relaxed text-zinc-700">
+                  <span className="mr-2 text-aurora-600/80">{i + 1}.</span>
                   <DayHighlights text={item} />
                 </li>
               ))}
@@ -267,8 +267,8 @@ export function Report() {
 
         {/* completed-curriculum mastery & evidence */}
         <section className="mt-12 animate-fade-up" style={{ animationDelay: "200ms" }}>
-          <h2 className="text-sm font-medium text-zinc-100">Completed curriculum — mastery &amp; evidence</h2>
-          <p className="mt-1 text-xs text-zinc-500">
+          <h2 className="text-sm font-medium text-zinc-900">Completed curriculum — mastery &amp; evidence</h2>
+          <p className="mt-1 text-xs text-zinc-400">
             The interview pool is your completed curriculum only — every day you passed.{" "}
             {masteryRows.filter((r) => r.covered).length} of {masteryRows.length} were
             covered live; the rest are estimated from your mission record and belief
@@ -281,9 +281,9 @@ export function Report() {
             <Badge tone="amber">⚠ Needs Validation</Badge>
             <Badge tone="neutral">Not in pool (failed / skipped / not started)</Badge>
           </div>
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-white/8 print:text-zinc-800">
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-zinc-200 print:text-zinc-800">
             <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="bg-white/3 text-[11px] uppercase tracking-wide text-zinc-500">
+              <thead className="bg-black/3 text-[11px] uppercase tracking-wide text-zinc-400">
                 <tr>
                   <th className="px-4 py-3 font-medium">Day</th>
                   <th className="px-4 py-3 font-medium">Topic</th>
@@ -293,10 +293,10 @@ export function Report() {
                   <th className="px-4 py-3 font-medium">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-black/5">
                 {masteryRows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-zinc-500">
+                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-zinc-400">
                       No completed curriculum days in this candidate's record.
                     </td>
                   </tr>
@@ -305,15 +305,15 @@ export function Report() {
                     const tone = masteryTone(row.status);
                     const pct = row.mastery == null ? null : Math.round(row.mastery * 100);
                     return (
-                      <tr key={row.day} className="bg-ink-900/40">
-                        <td className="px-4 py-3 font-medium text-aurora-300">{row.day}</td>
-                        <td className="px-4 py-3 text-zinc-400">{dayTitle(row.day)}</td>
+                      <tr key={row.day} className="bg-zinc-50">
+                        <td className="px-4 py-3 font-medium text-aurora-600">{row.day}</td>
+                        <td className="px-4 py-3 text-zinc-600">{dayTitle(row.day)}</td>
                         <td className="px-4 py-3">
                           {pct == null ? (
-                            <span className="text-zinc-600">—</span>
+                            <span className="text-zinc-400">—</span>
                           ) : (
                             <div className="flex items-center gap-2">
-                              <span className="w-10 font-medium text-zinc-200">{pct}%</span>
+                              <span className="w-10 font-medium text-zinc-800">{pct}%</span>
                               <Progress value={pct} tone={tone} className="w-24" />
                             </div>
                           )}
@@ -321,16 +321,16 @@ export function Report() {
                         <td className="px-4 py-3">
                           <span className={`font-medium ${
                             row.confidence === "High"
-                              ? "text-mint-300"
+                              ? "text-mint-600"
                               : row.confidence === "Medium"
-                                ? "text-aurora-300/90"
-                                : "text-amber-300/90"
+                                ? "text-aurora-600/90"
+                                : "text-amber-600/90"
                           }`}>
                             {row.confidence}
                           </span>
-                          <div className="mt-0.5 text-[11px] text-zinc-600">{row.confidenceReason}</div>
+                          <div className="mt-0.5 text-[11px] text-zinc-400">{row.confidenceReason}</div>
                         </td>
-                        <td className="px-4 py-3 text-zinc-400">{row.evidenceSource}</td>
+                        <td className="px-4 py-3 text-zinc-600">{row.evidenceSource}</td>
                         <td className="px-4 py-3">
                           <Badge tone={tone}>{MASTERY_STATUS_LABELS[row.status]}</Badge>
                         </td>
@@ -345,8 +345,8 @@ export function Report() {
 
         {/* curriculum coverage map */}
         <section className="mt-12 animate-fade-up" style={{ animationDelay: "260ms" }}>
-          <h2 className="text-sm font-medium text-zinc-100">Coverage across the cohort</h2>
-          <p className="mt-1 text-xs text-zinc-500">
+          <h2 className="text-sm font-medium text-zinc-900">Coverage across the cohort</h2>
+          <p className="mt-1 text-xs text-zinc-400">
             Interview pool = completed curriculum days (tinted). Verified days are mint,
             sufficient-evidence violet, needs-validation amber, estimated aurora; the rest
             are not in the pool. Core question days are outlined.
@@ -359,11 +359,11 @@ export function Report() {
               return (
                 <Card key={module.n} className="p-4 print:break-inside-avoid">
                   <div className="flex items-baseline justify-between">
-                    <div className="text-xs font-medium text-zinc-300">
-                      <span className="mr-2 text-zinc-600">M{module.n}</span>
+                    <div className="text-xs font-medium text-zinc-700">
+                      <span className="mr-2 text-zinc-400">M{module.n}</span>
                       {module.title}
                     </div>
-                    <span className="text-[11px] text-zinc-600">
+                    <span className="text-[11px] text-zinc-400">
                       {touched}/{days.length} covered
                     </span>
                   </div>
@@ -381,17 +381,17 @@ export function Report() {
                         <div
                           key={day}
                           title={title}
-                          className={`flex aspect-[2.2/1] items-center justify-center rounded-lg border text-xs font-medium transition-colors ${
-                            tone === "mint"
-                              ? "border-mint-400/30 bg-mint-400/10 text-mint-300"
-                              : tone === "amber"
-                                ? "border-amber-300/30 bg-amber-300/10 text-amber-300"
-                                : tone === "aurora"
-                                  ? "border-aurora-500/30 bg-aurora-500/10 text-aurora-300"
-                                  : tone === "violet"
-                                    ? "border-violet-400/30 bg-violet-400/10 text-violet-300"
-                                    : "border-white/6 bg-white/2 text-zinc-700"
-                          } ${core ? "ring-1 ring-inset ring-white/25" : ""}`}
+          className={`flex aspect-[2.2/1] items-center justify-center rounded-lg border text-xs font-medium transition-colors ${
+            tone === "mint"
+              ? "border-mint-600/30 bg-mint-500/10 text-mint-600"
+              : tone === "amber"
+                ? "border-amber-600/30 bg-amber-500/10 text-amber-600"
+                : tone === "aurora"
+                  ? "border-aurora-600/30 bg-aurora-500/10 text-aurora-600"
+                  : tone === "violet"
+                    ? "border-violet-600/30 bg-violet-500/10 text-violet-600"
+                    : "border-zinc-200 bg-zinc-50 text-zinc-400"
+          } ${core ? "ring-1 ring-inset ring-black/10" : ""}`}
                         >
                           {day}
                         </div>
@@ -406,13 +406,13 @@ export function Report() {
 
         {/* per-day probe analysis */}
         <section className="mt-12 animate-fade-up" style={{ animationDelay: "320ms" }}>
-          <h2 className="text-sm font-medium text-zinc-100">Where VIVA probed deeper</h2>
-          <p className="mt-1 text-xs text-zinc-500">
+          <h2 className="text-sm font-medium text-zinc-900">Where VIVA probed deeper</h2>
+          <p className="mt-1 text-xs text-zinc-400">
             Per-day question and answer counts plus grounded follow-ups, straight from the transcript metadata.
           </p>
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-white/8">
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-zinc-200">
             <table className="w-full min-w-[560px] text-left text-sm print:text-zinc-800">
-              <thead className="bg-white/3 text-[11px] uppercase tracking-wide text-zinc-500">
+              <thead className="bg-black/3 text-[11px] uppercase tracking-wide text-zinc-400">
                 <tr>
                   <th className="px-4 py-3 font-medium">Day</th>
                   <th className="px-4 py-3 font-medium">Topic</th>
@@ -422,10 +422,10 @@ export function Report() {
                   <th className="px-4 py-3 text-center font-medium">Hints</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-black/5">
                 {[...analysis.perDay.entries()].length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-zinc-500">
+                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-zinc-400">
                       No days were discussed in this session.
                     </td>
                   </tr>
@@ -433,23 +433,23 @@ export function Report() {
                   [...analysis.perDay.entries()]
                     .sort((a, b) => a[0] - b[0])
                     .map(([day, signal]) => (
-                      <tr key={day} className="bg-ink-900/40">
-                        <td className="px-4 py-3 font-medium text-aurora-300">{day}</td>
-                        <td className="px-4 py-3 text-zinc-400">{dayTitle(day)}</td>
-                        <td className="px-4 py-3 text-center text-zinc-300">{signal.questions}</td>
-                        <td className="px-4 py-3 text-center text-zinc-300">{signal.answers}</td>
+                      <tr key={day} className="bg-zinc-50">
+                        <td className="px-4 py-3 font-medium text-aurora-600">{day}</td>
+                        <td className="px-4 py-3 text-zinc-600">{dayTitle(day)}</td>
+                        <td className="px-4 py-3 text-center text-zinc-700">{signal.questions}</td>
+                        <td className="px-4 py-3 text-center text-zinc-700">{signal.answers}</td>
                         <td className="px-4 py-3 text-center">
                           {signal.probes > 0 ? (
                             <Badge tone="aurora">{signal.probes}</Badge>
                           ) : (
-                            <span className="text-zinc-700">—</span>
+                            <span className="text-zinc-400">—</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-center">
                           {signal.hints > 0 ? (
                             <Badge tone="amber">{signal.hints}</Badge>
                           ) : (
-                            <span className="text-zinc-700">—</span>
+                            <span className="text-zinc-400">—</span>
                           )}
                         </td>
                       </tr>
@@ -462,8 +462,8 @@ export function Report() {
 
         {/* transcript */}
         <section className="mt-12 animate-fade-up" style={{ animationDelay: "380ms" }}>
-          <details className="group rounded-2xl border border-white/8 bg-ink-900/60 p-5 print:hidden">
-            <summary className="cursor-pointer list-none text-sm font-medium text-zinc-200 marker:hidden">
+          <details className="group rounded-2xl border border-zinc-200 bg-white p-5 print:hidden">
+            <summary className="cursor-pointer list-none text-sm font-medium text-zinc-800 marker:hidden">
               <span className="mr-2 inline-block transition-transform group-open:rotate-90" aria-hidden="true">
                 →
               </span>
@@ -471,8 +471,8 @@ export function Report() {
             </summary>
             <div className="mt-4 space-y-3">
               {session.transcript.map((entry, i) => (
-                <div key={i} className={`text-sm leading-relaxed ${entry.role === "candidate" ? "text-zinc-200" : "text-zinc-400"}`}>
-                  <span className="mr-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
+                <div key={i} className={`text-sm leading-relaxed ${entry.role === "candidate" ? "text-zinc-800" : "text-zinc-600"}`}>
+                  <span className="mr-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
                     {entry.role}
                     {entry.day != null ? ` · day ${entry.day}` : ""}
                     {entry.meta?.action === "follow_up" ? " · follow-up" : ""}
@@ -484,7 +484,7 @@ export function Report() {
           </details>
         </section>
 
-        <footer className="mt-16 border-t border-white/5 py-8 text-center text-xs text-zinc-600 print:hidden">
+        <footer className="mt-16 border-t border-black/10 py-8 text-center text-xs text-zinc-400 print:hidden">
           VIVA — evidence-grounded assessment · scores reference retrieved curriculum objectives ·
           reasoning metadata is product data, not chain-of-thought
         </footer>
@@ -530,7 +530,7 @@ function DayHighlights({ text }: { text: string }) {
     <>
       {parts.map((part, i) =>
         typeof part === "number" ? (
-          <span key={i} className="rounded-md bg-aurora-500/10 px-1.5 py-0.5 font-medium text-aurora-300 print:bg-zinc-200 print:text-zinc-800">
+          <span key={i} className="rounded-md bg-aurora-500/10 px-1.5 py-0.5 font-medium text-aurora-600 print:bg-zinc-200 print:text-zinc-800">
             Day {part}
           </span>
         ) : (

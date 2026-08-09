@@ -6,9 +6,9 @@ type Size = "sm" | "md" | "lg";
 const VARIANTS: Record<Variant, string> = {
   primary:
     "bg-gradient-to-r from-aurora-500 to-aurora-600 text-white shadow-[0_8px_24px_-8px_rgba(14,165,233,0.55)] hover:brightness-110 active:brightness-95",
-  ghost: "text-zinc-400 hover:text-zinc-100 hover:bg-white/5",
-  outline: "border border-white/10 text-zinc-300 hover:border-white/20 hover:bg-white/5",
-  danger: "border border-rose-400/30 text-rose-300 hover:bg-rose-400/10",
+  ghost: "text-zinc-500 hover:text-zinc-900 hover:bg-black/5",
+  outline: "border border-zinc-300 text-zinc-600 hover:border-zinc-400 hover:bg-black/5",
+  danger: "border border-rose-400/30 text-rose-600 hover:bg-rose-500/5",
 };
 
 const SIZES: Record<Size, string> = {

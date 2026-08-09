@@ -10,11 +10,11 @@ export function Progress({
   const clamped = Math.max(0, Math.min(100, value));
   const color =
     tone === "mint"
-      ? "bg-mint-400"
+      ? "bg-mint-500"
       : tone === "amber"
-        ? "bg-amber-300"
+        ? "bg-amber-400"
         : tone === "violet"
-          ? "bg-violet-400"
+          ? "bg-violet-500"
           : "bg-gradient-to-r from-aurora-500 to-aurora-400";
   return (
     <div
@@ -22,7 +22,7 @@ export function Progress({
       aria-valuenow={clamped}
       aria-valuemin={0}
       aria-valuemax={100}
-      className={`h-1.5 w-full overflow-hidden rounded-full bg-white/8 ${className}`}
+      className={`h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 ${className}`}
     >
       <div className={`h-full rounded-full ${color}`} style={{ width: `${clamped}%` }} />
     </div>
